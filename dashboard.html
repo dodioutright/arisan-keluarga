@@ -34,7 +34,7 @@
                 <nav class="space-y-2">
                     <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium bg-slate-100"><i data-lucide="layout-dashboard" class="h-5 w-5"></i><span>Dashboard</span></a>
                     <a href="peserta.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="users" class="h-5 w-5"></i><span>Peserta</span></a>
-                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="settings" class="h-5 w-5"></i><span>Pengaturan</span></a>
+                    <a href="pengaturan.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="settings" class="h-5 w-5"></i><span>Pengaturan</span></a>
                 </nav>
                 <div><div class="border-t pt-4 flex items-center justify-between"><span id="user-email" class="text-sm text-slate-600 truncate"></span><button id="logout-button-mobile" title="Keluar" class="p-2 rounded-md hover:bg-slate-100 text-slate-600"><i data-lucide="log-out" class="h-5 w-5"></i></button></div></div>
             </div>
@@ -43,10 +43,34 @@
 
     <main class="mx-auto max-w-4xl p-4 md:p-6 lg:p-8">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4"><div class="bg-blue-100 p-3 rounded-lg"><i data-lucide="users" class="h-7 w-7 text-blue-600"></i></div><div><p class="text-sm text-slate-500">Total Peserta</p><p id="total-peserta-card" class="text-2xl font-bold text-slate-900">0 Orang</p></div></div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4"><div class="bg-green-100 p-3 rounded-lg"><i data-lucide="wallet" class="h-7 w-7 text-green-600"></i></div><div><p class="text-sm text-slate-500">Dana Terkumpul</p><p class="text-2xl font-bold text-slate-900">Rp 1.200.000</p></div></div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4"><div class="bg-orange-100 p-3 rounded-lg"><i data-lucide="calendar-clock" class="h-7 w-7 text-orange-600"></i></div><div><p class="text-sm text-slate-500">Kocokan Berikutnya</p><p class="text-2xl font-bold text-slate-900">3 Juli 2025</p></div></div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4"><div class="bg-yellow-100 p-3 rounded-lg"><i data-lucide="trophy" class="h-7 w-7 text-yellow-600"></i></div><div><p class="text-sm text-slate-500">Pemenang Terakhir</p><p class="text-2xl font-bold text-slate-900">Andi Budiman</p></div></div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                <div class="bg-blue-100 p-3 rounded-lg"><i data-lucide="users" class="h-7 w-7 text-blue-600"></i></div>
+                <div>
+                    <p class="text-sm text-slate-500">Total Peserta</p>
+                    <p id="total-peserta-card" class="text-2xl font-bold text-slate-900">Memuat...</p>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                <div class="bg-green-100 p-3 rounded-lg"><i data-lucide="wallet" class="h-7 w-7 text-green-600"></i></div>
+                <div>
+                    <p class="text-sm text-slate-500">Dana Terkumpul</p>
+                    <p id="dana-terkumpul-card" class="text-2xl font-bold text-slate-900">Memuat...</p>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                <div class="bg-orange-100 p-3 rounded-lg"><i data-lucide="calendar-clock" class="h-7 w-7 text-orange-600"></i></div>
+                <div>
+                    <p class="text-sm text-slate-500">Kocokan Berikutnya</p>
+                    <p id="tanggal-kocokan-card" class="text-2xl font-bold text-slate-900">Memuat...</p>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                <div class="bg-yellow-100 p-3 rounded-lg"><i data-lucide="trophy" class="h-7 w-7 text-yellow-600"></i></div>
+                <div>
+                    <p class="text-sm text-slate-500">Pemenang Terakhir</p>
+                    <p class="text-2xl font-bold text-slate-900">-</p>
+                </div>
+            </div>
         </div>
     </main>
     <script type="module" src="app.js"></script>
