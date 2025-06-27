@@ -1,9 +1,7 @@
-// Import fungsi Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// --- KONFIGURASI FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyAWOaZVoiyloMY-UUJHeccEKR9CWYc-d7w",
     authDomain: "arisan-keluarga1.firebaseapp.com",
@@ -18,12 +16,112 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- Blok Inisialisasi dan Helper (Tidak berubah) ---
-// ...
+const currentPage = window.location.pathname.split('/').pop();
 
-// --- INISIALISASI HALAMAN PESERTA (DIROMBAK) ---
+const showToast = (message, isSuccess = true) => {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `w-full max-w-xs p-3 rounded-lg text-white ${isSuccess ? 'bg-green-600' : 'bg-red-600'} shadow-lg`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+};
+
+onAuthStateChanged(auth, (user) => {
+    const protectedPages = ['dashboard.html', 'peserta.html', 'pengaturan.html'];
+    if (user) {
+        if (currentPage === 'index.html' || currentPage === '') { window.location.href = 'dashboard.html'; return; }
+        initCommonElements(user);
+        if (currentPage === 'dashboard.html') initDashboardPage();
+        if (currentPage === 'peserta.html') initPesertaPage();
+        if (currentPage === 'pengaturan.html') initPengaturanPage();
+    } else {
+        if (protectedPages.includes(currentPage)) { window.location.href = 'index.html'; return; }
+        if (currentPage === 'index.html' || currentPage === '') initLoginPage();
+    }
+});
+
+function initLoginPage() {
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = e.target.email.value;
+            const password = e.target.password.value;
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = '';
+            signInWithEmailAndPassword(auth, email, password)
+                .catch(() => errorMessage.textContent = 'Email atau password salah.');
+        });
+    }
+}
+
+function initCommonElements(user) {
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileSidebar = document.getElementById('mobile-sidebar');
+    const sidebarContent = document.getElementById('sidebar-content');
+    const closeSidebarButton = document.getElementById('close-sidebar-button');
+    
+    const openSidebar = () => { if(mobileSidebar) { document.body.style.overflow = 'hidden'; mobileSidebar.classList.remove('opacity-0', 'pointer-events-none'); sidebarContent.classList.remove('translate-x-full'); } };
+    const closeSidebar = () => { if(mobileSidebar) { document.body.style.overflow = ''; sidebarContent.classList.add('translate-x-full'); mobileSidebar.classList.add('opacity-0'); setTimeout(() => mobileSidebar.classList.add('pointer-events-none'), 300); } };
+
+    if (mobileMenuButton) mobileMenuButton.addEventListener('click', openSidebar);
+    if (closeSidebarButton) closeSidebarButton.addEventListener('click', closeSidebar);
+    if (mobileSidebar) mobileSidebar.addEventListener('click', (e) => { if (e.target === mobileSidebar) closeSidebar(); });
+
+    const handleLogout = () => signOut(auth);
+    document.getElementById('logout-button-desktop')?.addEventListener('click', handleLogout);
+    document.getElementById('logout-button-mobile')?.addEventListener('click', handleLogout);
+
+    const userEmailElement = document.getElementById('user-email');
+    if (userEmailElement) userEmailElement.textContent = user.email;
+}
+
+function initDashboardPage() {
+    const totalPesertaEl = document.getElementById('total-peserta-card');
+    const danaTerkumpulEl = document.getElementById('dana-terkumpul-card');
+    const tanggalKocokanEl = document.getElementById('tanggal-kocokan-card');
+
+    const getPengaturan = async () => {
+        const pengaturanRef = doc(db, "pengaturan", "umum");
+        const docSnap = await getDoc(pengaturanRef);
+        if (docSnap.exists()) return docSnap.data();
+        const now = new Date();
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 1);
+        nextMonth.setDate(nextMonth.getDate() - 1);
+        const year = nextMonth.getFullYear();
+        const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
+        const day = '01';
+        return { biaya_per_peserta: 100000, tanggal_kocokan: `${year}-${month}-${day}` };
+    };
+
+    const loadDashboardData = async () => {
+        try {
+            const [pengaturan, pesertaSnap] = await Promise.all([
+                getPengaturan(),
+                getDocs(query(collection(db, "peserta"), where("aktif", "==", true)))
+            ]);
+
+            totalPesertaEl.textContent = `${pesertaSnap.size} Orang`;
+
+            const pesertaLunas = pesertaSnap.docs.filter(doc => doc.data().status_bayar === true).length;
+            const totalDana = pesertaLunas * pengaturan.biaya_per_peserta;
+            danaTerkumpulEl.textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalDana);
+
+            const tanggal = new Date(pengaturan.tanggal_kocokan + 'T00:00:00'); 
+            tanggalKocokanEl.textContent = tanggal.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        } catch (error) {
+            console.error("Gagal memuat data dashboard:", error);
+            totalPesertaEl.textContent = 'Error';
+            danaTerkumpulEl.textContent = 'Error';
+            tanggalKocokanEl.textContent = 'Error';
+        }
+    };
+    loadDashboardData();
+}
+
 function initPesertaPage() {
-    // --- Elemen DOM ---
     const listBody = document.getElementById('peserta-list-manajemen');
     const totalText = document.getElementById('total-peserta-text');
     const modal = document.getElementById('peserta-modal');
@@ -32,31 +130,36 @@ function initPesertaPage() {
     const idInput = document.getElementById('peserta-id');
     const nameInput = document.getElementById('nama-peserta');
     const bayarToggle = document.getElementById('status-bayar-toggle');
-    // Variabel untuk toggle status menang dihilangkan
     let docIdToDelete = null;
 
-    // --- Fungsi Modal & Tombol Utama (Tidak berubah) ---
-    // ...
+    const showModal = (target) => { target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); };
+    const hideModal = (target) => { target.classList.add('opacity-0'); target.querySelector('.modal-content').classList.add('scale-95'); setTimeout(() => target.classList.add('pointer-events-none'), 300); };
+    
+    document.getElementById('add-peserta-btn').addEventListener('click', () => {
+        form.reset();
+        idInput.value = '';
+        document.getElementById('modal-title').textContent = 'Tambah Peserta Baru';
+        showModal(modal);
+    });
+    document.getElementById('cancel-btn').addEventListener('click', () => hideModal(modal));
+    document.getElementById('cancel-delete-btn').addEventListener('click', () => hideModal(deleteModal));
 
-    // --- Submit Form (Logika Diperbarui) ---
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = idInput.value;
-        
         try {
-            if (id) { // Mode Edit
-                // HANYA update nama dan status_bayar
+            if (id) {
                 const dataToUpdate = {
                     nama: nameInput.value,
                     status_bayar: bayarToggle.checked,
                 };
                 await updateDoc(doc(db, 'peserta', id), dataToUpdate);
                 showToast('Data berhasil diperbarui!');
-            } else { // Mode Tambah
+            } else {
                 const newData = {
                     nama: nameInput.value,
                     status_bayar: bayarToggle.checked,
-                    status_menang: false, // Default value untuk peserta baru
+                    status_menang: false,
                     aktif: true
                 };
                 await addDoc(collection(db, 'peserta'), newData);
@@ -70,13 +173,19 @@ function initPesertaPage() {
         }
     });
 
-    // ... (Logika Hapus Peserta tidak berubah) ...
+    document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+        if (!docIdToDelete) return;
+        try {
+            await deleteDoc(doc(db, 'peserta', docIdToDelete));
+            showToast('Peserta berhasil dihapus!');
+            hideModal(deleteModal);
+            loadPeserta();
+        } catch (error) { showToast('Gagal menghapus', false); }
+    });
 
-    // --- Memuat Data Peserta (Logika Diperbarui) ---
     const loadPeserta = async () => {
         if (!listBody) return;
         listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Memuat...</td></tr>`;
-        
         const snap = await getDocs(collection(db, "peserta"));
         listBody.innerHTML = '';
         totalText.textContent = `Total ${snap.size} anggota aktif.`;
@@ -85,13 +194,11 @@ function initPesertaPage() {
             return;
         }
 
-        let counter = 1; // Inisialisasi nomor urut
+        let counter = 1;
         snap.forEach(d => {
             const data = d.data();
             const tr = listBody.insertRow();
             tr.className = 'hover:bg-slate-50';
-            
-            // Render sel tabel
             tr.innerHTML = `
                 <td class="p-4 text-slate-500 text-center">${counter}</td>
                 <td class="p-4 font-medium text-slate-800">${data.nama}</td>
@@ -102,26 +209,66 @@ function initPesertaPage() {
                     <button class="delete-btn p-2 rounded-md hover:bg-red-100 text-red-600"><i class="h-4 w-4" data-lucide="trash-2"></i></button>
                 </td>
             `;
-            
-            // Event listener untuk tombol edit
             tr.querySelector('.edit-btn').addEventListener('click', () => {
                 idInput.value = d.id;
                 nameInput.value = data.nama;
                 bayarToggle.checked = data.status_bayar;
-                // Logika untuk mengisi toggle status menang dihilangkan
                 document.getElementById('modal-title').textContent = 'Ubah Data Peserta';
                 showModal(modal);
             });
-
-            tr.querySelector('.delete-btn').addEventListener('click', () => {
-                docIdToDelete = d.id;
-                showModal(deleteModal);
-            });
-
-            counter++; // Naikkan nomor urut untuk baris berikutnya
+            tr.querySelector('.delete-btn').addEventListener('click', () => { docIdToDelete = d.id; showModal(deleteModal); });
+            counter++;
         });
         lucide.createIcons();
     };
-
     loadPeserta();
+}
+
+function initPengaturanPage() {
+    const form = document.getElementById('pengaturan-form');
+    const biayaInput = document.getElementById('biaya_per_peserta');
+    const tanggalInput = document.getElementById('tanggal_kocokan');
+    const simpanBtn = document.getElementById('simpan-btn');
+    const pengaturanRef = doc(db, "pengaturan", "umum");
+
+    const loadPengaturan = async () => {
+        try {
+            const docSnap = await getDoc(pengaturanRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                biayaInput.value = data.biaya_per_peserta;
+                tanggalInput.value = data.tanggal_kocokan;
+            } else {
+                biayaInput.value = 100000;
+                const now = new Date();
+                const nextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 1);
+                nextMonth.setDate(nextMonth.getDate() - 1);
+                const year = nextMonth.getFullYear();
+                const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
+                const day = '01';
+                tanggalInput.value = `${year}-${month}-${day}`;
+            }
+        } catch (error) { showToast("Gagal memuat pengaturan.", false); }
+    };
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        simpanBtn.disabled = true;
+        simpanBtn.textContent = 'Menyimpan...';
+        const dataToSave = {
+            biaya_per_peserta: parseInt(biayaInput.value, 10),
+            tanggal_kocokan: tanggalInput.value,
+        };
+        try {
+            await setDoc(pengaturanRef, dataToSave);
+            showToast("Pengaturan berhasil disimpan!");
+        } catch (error) {
+            showToast("Gagal menyimpan pengaturan.", false);
+        } finally {
+            simpanBtn.disabled = false;
+            simpanBtn.innerHTML = '<i data-lucide="save" class="h-4 w-4"></i><span>Simpan Pengaturan</span>';
+            lucide.createIcons();
+        }
+    });
+    loadPengaturan();
 }
