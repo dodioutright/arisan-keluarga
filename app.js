@@ -17,7 +17,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const currentPage = window.location.pathname.split('/').pop();
+const currentPagePath = window.location.pathname.split('/').pop();
 
 // --- FUNGSI HELPERS ---
 const showToast = (message, isSuccess = true) => {
@@ -34,21 +34,21 @@ const showToast = (message, isSuccess = true) => {
 onAuthStateChanged(auth, (user) => {
     const protectedPages = ['dashboard.html', 'peserta.html', 'pengaturan.html'];
     if (user) {
-        if (currentPage === 'index.html' || currentPage === '') {
+        if (currentPagePath === 'index.html' || currentPagePath === '') {
             window.location.href = 'dashboard.html';
             return;
         }
         initCommonElements(user);
-        if (currentPage === 'dashboard.html') initDashboardPage();
-        if (currentPage === 'peserta.html') initPesertaPage();
-        if (currentPage === 'pengaturan.html') initPengaturanPage();
+        if (currentPagePath === 'dashboard.html') initDashboardPage();
+        if (currentPagePath === 'peserta.html') initPesertaPage();
+        if (currentPagePath === 'pengaturan.html') initPengaturanPage();
 
     } else {
-        if (protectedPages.includes(currentPage)) {
+        if (protectedPages.includes(currentPagePath)) {
             window.location.href = 'index.html';
             return;
         }
-        if (currentPage === 'index.html' || currentPage === '') initLoginPage();
+        if (currentPagePath === 'index.html' || currentPagePath === '') initLoginPage();
     }
 });
 
@@ -159,7 +159,6 @@ function initDashboardPage() {
         const docSnap = await getDoc(pengaturanRef);
         if (docSnap.exists()) return docSnap.data();
 
-        // Default settings if not found
         const now = new Date();
         const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
         const year = nextMonth.getFullYear();
@@ -218,7 +217,7 @@ function initDashboardPage() {
                 await updateDoc(doc(db, 'peserta', pemenang.id), {
                     status_menang: true
                 });
-                localStorage.removeItem('pesertaCache'); // Invalidate cache
+                localStorage.removeItem('pesertaCache');
 
                 namaAnimasiEl.textContent = pemenang.nama;
                 namaPemenangEl.textContent = pemenang.nama;
@@ -327,8 +326,12 @@ function initPesertaPage() {
     const idInput = document.getElementById('peserta-id');
     const nameInput = document.getElementById('nama-peserta');
     const bayarToggle = document.getElementById('status-bayar-toggle');
+    const paginationControls = document.getElementById('pagination-controls');
+
     let docIdToDelete = null;
     let localPesertaState = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
 
     const showModal = (target) => {
         if (target) {
@@ -355,35 +358,17 @@ function initPesertaPage() {
 
     const invalidateCacheAndReload = () => {
         localStorage.removeItem('pesertaCache');
-        if (listBody) listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Memuat ulang data...</td></tr>`;
         loadPeserta();
     };
 
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = idInput.value;
-        const optimisticData = {
-            id: id || `temp-${Date.now()}`,
-            nama: nameInput.value,
-            status_bayar: bayarToggle.checked,
-            status_menang: id ? (localPesertaState.find(p => p.id === id)?.status_menang || false) : false,
-            aktif: true
-        };
-
-        const originalState = [...localPesertaState];
         hideModal(modal);
-
-        if (id) {
-            localPesertaState = localPesertaState.map(p => p.id === id ? optimisticData : p);
-        } else {
-            localPesertaState.push(optimisticData);
-        }
-        renderPesertaTable(localPesertaState);
-
         try {
             const dataToSave = {
-                nama: optimisticData.nama,
-                status_bayar: optimisticData.status_bayar
+                nama: nameInput.value,
+                status_bayar: bayarToggle.checked,
             };
             if (id) {
                 await updateDoc(doc(db, 'peserta', id), dataToSave);
@@ -396,39 +381,66 @@ function initPesertaPage() {
             invalidateCacheAndReload();
         } catch (error) {
             showToast('Gagal menyimpan ke server.', false);
-            renderPesertaTable(originalState); // Rollback
         }
     });
 
     document.getElementById('confirm-delete-btn')?.addEventListener('click', async () => {
         if (!docIdToDelete) return;
-        const originalState = [...localPesertaState];
-        const idToDelete = docIdToDelete;
         hideModal(deleteModal);
-        localPesertaState = localPesertaState.filter(p => p.id !== idToDelete);
-        renderPesertaTable(localPesertaState);
         try {
-            await deleteDoc(doc(db, 'peserta', idToDelete));
+            await deleteDoc(doc(db, 'peserta', docIdToDelete));
             showToast('Peserta berhasil dihapus!');
             invalidateCacheAndReload();
         } catch (error) {
             showToast('Gagal menghapus dari server.', false);
-            renderPesertaTable(originalState); // Rollback
         }
     });
 
-    const renderPesertaTable = (pesertaArray) => {
+    const setupPagination = () => {
+        if (!paginationControls) return;
+        paginationControls.innerHTML = '';
+        const pageCount = Math.ceil(localPesertaState.length / itemsPerPage);
+        if (pageCount <= 1) return;
+
+        const createButton = (text, page, isDisabled = false, isActive = false) => {
+            const button = document.createElement('button');
+            button.className = `inline-flex items-center justify-center rounded-md text-sm font-medium h-9 w-9 mx-0.5 ${isActive ? 'border border-slate-300 bg-slate-900 text-white' : 'hover:bg-slate-100'} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`;
+            button.innerHTML = text;
+            button.disabled = isDisabled;
+            button.addEventListener('click', () => {
+                currentPage = page;
+                renderPesertaTable();
+                setupPagination();
+            });
+            return button;
+        };
+        
+        paginationControls.appendChild(createButton('<i class="h-4 w-4" data-lucide="chevron-left"></i>', currentPage - 1, currentPage === 1));
+
+        for (let i = 1; i <= pageCount; i++) {
+            paginationControls.appendChild(createButton(i.toString(), i, false, currentPage === i));
+        }
+
+        paginationControls.appendChild(createButton('<i class="h-4 w-4" data-lucide="chevron-right"></i>', currentPage + 1, currentPage === pageCount));
+        lucide.createIcons();
+    };
+
+    const renderPesertaTable = () => {
         if (!listBody) return;
         listBody.innerHTML = '';
-        if (pesertaArray.length === 0) {
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedItems = localPesertaState.slice(startIndex, endIndex);
+
+        if (paginatedItems.length === 0 && currentPage === 1) {
             listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Belum ada peserta.</td></tr>`;
         } else {
-            let counter = 1;
-            pesertaArray.forEach(peserta => {
+            paginatedItems.forEach((peserta, index) => {
                 const tr = listBody.insertRow();
                 tr.className = 'hover:bg-slate-50';
                 tr.innerHTML = `
-                    <td class="p-4 text-slate-500 text-center">${counter++}</td>
+                    <td class="p-4 text-slate-500 text-center">${startIndex + index + 1}</td>
                     <td class="p-4 font-medium text-slate-800">${peserta.nama}</td>
                     <td class="p-4"><span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${peserta.status_bayar ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${peserta.status_bayar ? 'Lunas' : 'Menunggu'}</span></td>
                     <td class="p-4"><span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${peserta.status_menang ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-800'}">${peserta.status_menang ? 'Sudah' : 'Belum'}</span></td>
@@ -448,6 +460,8 @@ function initPesertaPage() {
                 });
                 tr.querySelector('.delete-btn').addEventListener('click', () => {
                     docIdToDelete = peserta.id;
+                    const namePlaceholder = document.getElementById('peserta-to-delete-name');
+                    if (namePlaceholder) { namePlaceholder.textContent = peserta.nama; }
                     showModal(deleteModal);
                 });
             });
@@ -457,21 +471,21 @@ function initPesertaPage() {
 
     const loadPeserta = async () => {
         listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Memuat data peserta...</td></tr>`;
+        paginationControls.innerHTML = '';
         try {
-            const snap = await getDocs(collection(db, "peserta"));
+            const snap = await getDocs(query(collection(db, "peserta")));
             const freshData = [];
-            snap.forEach(d => freshData.push({
-                id: d.id,
-                ...d.data()
-            }));
+            snap.forEach(d => freshData.push({ id: d.id, ...d.data() }));
             localPesertaState = freshData;
 
             totalText.textContent = `Total ${localPesertaState.length} anggota aktif.`;
-            renderPesertaTable(localPesertaState);
+            currentPage = 1;
+            renderPesertaTable();
+            setupPagination();
             localStorage.setItem('pesertaCache', JSON.stringify(freshData));
         } catch (error) {
             console.error("Error memuat peserta:", error);
-            listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data. Silakan refresh halaman.</td></tr>`;
+            listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data.</td></tr>`;
         }
     };
     loadPeserta();
@@ -492,7 +506,6 @@ function initPengaturanPage() {
                 biayaInput.value = data.biaya_per_peserta;
                 tanggalInput.value = data.tanggal_kocokan;
             } else {
-                // Set default values if no settings exist
                 biayaInput.value = 100000;
                 const now = new Date();
                 const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
