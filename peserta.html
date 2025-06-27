@@ -1,193 +1,106 @@
 <!DOCTYPE html>
-<html lang="id" class="scroll-smooth">
+<html lang="id" class="bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Peserta - Arisan</title>
+    <title>Manajemen Peserta - Aplikasi Arisan</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://unpkg.com/@popperjs/core@2"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }
-        .ui-overlay { display: flex; position: fixed; inset: 0; z-index: 50; visibility: hidden; opacity: 0; transition: visibility 0.2s, opacity 0.2s ease-in-out; background-color: rgba(0,0,0,0.6); }
-        .ui-overlay.is-open { visibility: visible; opacity: 1; }
-        body.overflow-hidden { overflow: hidden; }
+        body { font-family: 'Inter', sans-serif; }
+        .modal-overlay { transition: opacity 0.2s ease-in-out; }
+        .modal-content { transition: transform 0.2s ease-in-out; }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-slate-50">
+<body class="min-h-screen">
 
-<header class="sticky top-0 z-30 lg:hidden flex items-center justify-between px-4 h-16 bg-white border-b border-slate-200">
-     <a href="index.html" class="font-bold text-lg flex items-center gap-2">
-        <i data-lucide="hand-coins" class="h-6 w-6 text-slate-800"></i> Arisan
-    </a>
-    <button id="mobile-menu-btn" class="p-2"><i data-lucide="menu"></i></button>
-</header>
-
-<div class="flex">
-    <aside id="sidebar" class="fixed top-0 z-40 lg:sticky h-screen w-64 bg-white border-r border-slate-200 p-6 flex flex-col -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
-        <div class="flex items-center justify-between mb-8">
-            <a href="index.html" class="flex items-center gap-2">
-                <i data-lucide="hand-coins" class="h-7 w-7 text-slate-800"></i>
-                <h3 class="font-bold text-xl">Arisan</h3>
-            </a>
-            <button id="close-sidebar-btn" class="p-2 lg:hidden"><i data-lucide="x"></i></button>
-        </div>
-        <nav class="flex-1 flex flex-col space-y-2 text-sm text-slate-600">
-            <a href="index.html" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 hover:text-slate-900"><i data-lucide="layout-dashboard" class="h-4 w-4"></i> Dashboard</a>
-            <a href="peserta.html" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-md bg-slate-100 text-slate-900 font-medium"><i data-lucide="users" class="h-4 w-4"></i> Peserta</a>
-            <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 hover:text-slate-900"><i data-lucide="history" class="h-4 w-4"></i> Riwayat Kocokan</a>
-            <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 hover:text-slate-900"><i data-lucide="settings" class="h-4 w-4"></i> Pengaturan</a>
-        </nav>
-        <div class="mt-auto"><a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-sm text-slate-600 hover:text-slate-900"><i data-lucide="log-out" class="h-4 w-4"></i> Keluar</a></div>
-    </aside>
-
-    <main class="flex-1 p-4 md:p-8 lg:p-10">
-        <div class="max-w-7xl mx-auto">
-             <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div><h1 class="text-3xl font-bold text-slate-900">Daftar Peserta</h1><p class="text-slate-500 mt-1">Kelola semua peserta arisan di sini.</p></div>
-                <button data-ui-target="dialog-tambah-peserta" class="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium h-11 px-6 py-2 bg-slate-900 text-white hover:bg-slate-800 shadow-sm"><i data-lucide="user-plus" class="h-5 w-5"></i><span>Tambah Peserta</span></button>
-            </div>
-            
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
-                <div class="w-full overflow-x-auto">
-                    <table class="w-full text-sm min-w-[640px]">
-                        <thead class="bg-slate-50">
-                            <tr class="text-left text-slate-600 font-medium">
-                                <th class="p-4">Nama Peserta</th>
-                                <th class="p-4">Status Iuran</th>
-                                <th class="p-4">Keterangan</th>
-                                <th class="p-4 text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabel-peserta-body" class="divide-y divide-slate-200">
-                            </tbody>
-                    </table>
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
+        <nav class="mx-auto max-w-4xl px-4">
+            <div class="flex h-16 items-center justify-between">
+                <a href="dashboard.html" class="flex items-center gap-2 text-slate-900"><div class="bg-slate-900 p-2 rounded-lg"><i data-lucide="gem" class="h-5 w-5 text-white"></i></div><span class="font-bold text-lg">Arisan</span></a>
+                <div class="hidden md:flex items-center gap-2">
+                    <a href="dashboard.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"><i data-lucide="layout-dashboard" class="h-4 w-4"></i><span>Dashboard</span></a>
+                    <a href="peserta.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold bg-slate-100 text-slate-900"><i data-lucide="users" class="h-4 w-4"></i><span>Peserta</span></a>
+                    <a href="#" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"><i data-lucide="settings" class="h-4 w-4"></i><span>Pengaturan</span></a>
                 </div>
+                <div class="flex items-center"><button id="mobile-menu-button" class="md:hidden p-2 rounded-md hover:bg-slate-100 text-slate-600 hover:text-slate-900"><i data-lucide="menu" class="h-6 w-6"></i></button></div>
             </div>
+        </nav>
+    </header>
 
-            <footer class="mt-12 pt-8 border-t border-slate-200 text-center text-sm text-slate-500"><p>© 2025 Arisan. All Rights Reserved.</p><p class="mt-1">Made with ❤️ by Dodi Outright.</p></footer>
+    <div id="mobile-sidebar" class="fixed inset-0 z-40 flex justify-end bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out opacity-0 pointer-events-none">
+        <div id="sidebar-content" class="relative w-72 max-w-[85%] bg-white h-full shadow-xl transition-transform duration-300 ease-in-out transform translate-x-full">
+            <div class="flex items-center justify-between p-4 border-b border-slate-200"><h2 class="font-bold text-lg">Menu</h2><button id="close-sidebar-button" class="p-2 rounded-full hover:bg-slate-100"><i data-lucide="x" class="h-5 w-5"></i></button></div>
+            <div class="flex flex-col justify-between h-[calc(100%-65px)] p-4">
+                <nav class="space-y-2">
+                    <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"><i data-lucide="layout-dashboard" class="h-5 w-5"></i><span>Dashboard</span></a>
+                    <a href="peserta.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium bg-slate-100 text-slate-900"><i data-lucide="users" class="h-5 w-5"></i><span>Peserta</span></a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"><i data-lucide="settings" class="h-5 w-5"></i><span>Pengaturan</span></a>
+                </nav>
+                <div><div class="border-t border-slate-200 pt-4 flex items-center justify-between"><span id="user-email" class="text-sm text-slate-600 truncate"></span><button id="logout-button-mobile" title="Keluar" class="p-2 rounded-md hover:bg-slate-100 text-slate-600 hover:text-slate-900"><i data-lucide="log-out" class="h-5 w-5"></i></button></div></div>
+            </div>
+        </div>
+    </div>
+
+    <main class="mx-auto max-w-4xl p-4 md:p-6 lg:p-8">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold text-slate-900">Manajemen Peserta</h1>
+            <button id="add-peserta-btn" class="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium h-10 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800">
+                <i data-lucide="plus" class="h-4 w-4"></i>
+                <span>Tambah Peserta</span>
+            </button>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="p-4 text-left font-semibold text-slate-600">Nama Peserta</th>
+                            <th class="p-4 text-left font-semibold text-slate-600">Status Bayar</th>
+                            <th class="p-4 text-left font-semibold text-slate-600">Status Menang</th>
+                            <th class="p-4 text-left font-semibold text-slate-600">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="peserta-list-manajemen" class="divide-y divide-slate-200">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </main>
-</div>
 
-<div id="dialog-tambah-peserta" class="ui-overlay items-center justify-center p-4"><div class="fixed inset-0" data-ui-close></div><div class="ui-content relative w-full max-w-lg mx-auto bg-white p-6 shadow-lg rounded-lg"><div class="flex items-start justify-between"><h2 class="text-lg font-semibold">Tambah Peserta Baru</h2><button data-ui-close class="p-1 -mt-1 -mr-1 rounded-full hover:bg-slate-100"><i data-lucide="x" class="h-5 w-5 text-slate-500"></i></button></div><div class="mt-6 space-y-2"><label for="nama-peserta-tambah" class="text-sm font-medium text-slate-700">Nama Lengkap</label><input id="nama-peserta-tambah" placeholder="Contoh: Budi Utomo" class="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm"></div><div class="mt-6 flex justify-end"><button id="btn-simpan-peserta" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800">Simpan Peserta</button></div></div></div>
-<div id="dialog-edit-peserta" class="ui-overlay items-center justify-center p-4"><div class="fixed inset-0" data-ui-close></div><div class="ui-content relative w-full max-w-lg mx-auto bg-white p-6 shadow-lg rounded-lg"><div class="flex items-start justify-between"><h2 class="text-lg font-semibold">Edit Nama Peserta</h2><button data-ui-close class="p-1 -mt-1 -mr-1 rounded-full hover:bg-slate-100"><i data-lucide="x" class="h-5 w-5 text-slate-500"></i></button></div><div class="mt-6 space-y-2"><label for="nama-peserta-edit" class="text-sm font-medium text-slate-700">Nama Lengkap</label><input id="nama-peserta-edit" class="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm"></div><div class="mt-6 flex justify-end"><button id="btn-konfirmasi-edit" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800">Simpan Perubahan</button></div></div></div>
-<div id="dialog-konfirmasi-hapus" class="ui-overlay items-center justify-center p-4"><div class="fixed inset-0" data-ui-close></div><div class="ui-content relative w-full max-w-md mx-auto bg-white p-6 shadow-lg sm:rounded-lg"><h2 class="text-lg font-semibold">Apakah Anda Yakin?</h2><p class="text-sm text-slate-500 mt-2">Tindakan ini akan menghapus peserta <strong id="nama-peserta-hapus" class="text-slate-900"></strong> secara permanen.</p><div class="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2"><button data-ui-close class="mt-2 sm:mt-0 inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-100">Batal</button><button id="btn-konfirmasi-hapus" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-red-600 text-white hover:bg-red-700">Ya, Hapus</button></div></div></div>
-<div id="dialog-ubah-status" class="ui-overlay items-center justify-center p-4"><div class="fixed inset-0" data-ui-close></div><div class="ui-content relative w-full max-w-md mx-auto bg-white p-6 shadow-lg sm:rounded-lg"><h2 class="text-lg font-semibold">Konfirmasi Ubah Status</h2><p class="text-sm text-slate-500 mt-2">Ubah status iuran untuk peserta <strong id="nama-peserta-status" class="text-slate-900"></strong>?</p><div class="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2"><button data-ui-close class="mt-2 sm:mt-0 inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-100">Batal</button><button id="btn-konfirmasi-ubah-status" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800">Simpan Perubahan</button></div></div></div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    // === STATE & LOCAL STORAGE ===
-    let participants = [];
-    const PARTICIPANTS_STORAGE_KEY = 'arisan_participants_data';
-    const saveParticipants = () => {
-        localStorage.setItem(PARTICIPANTS_STORAGE_KEY, JSON.stringify(participants));
-    };
-    const loadParticipants = () => {
-        const data = localStorage.getItem(PARTICIPANTS_STORAGE_KEY);
-        if (data) {
-            participants = JSON.parse(data);
-        } else {
-            participants = [
-                { id: Date.now(), name: "Budi Utomo", paymentStatus: "Lunas", hasWon: false },
-                { id: Date.now() + 1, name: "Siti Perwita", paymentStatus: "Lunas", hasWon: true },
-                { id: Date.now() + 2, name: "Ahmad Subarjo", paymentStatus: "Menunggu", hasWon: false }
-            ];
-            saveParticipants();
-        }
-    };
+    <div id="peserta-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 opacity-0 pointer-events-none">
+        <div class="modal-content bg-white w-full max-w-md p-6 rounded-lg shadow-xl transform scale-95">
+            <h2 id="modal-title" class="text-lg font-semibold">Tambah Peserta Baru</h2>
+            <form id="peserta-form" class="mt-4 space-y-4">
+                <input type="hidden" id="peserta-id">
+                <div>
+                    <label for="nama-peserta" class="text-sm font-medium">Nama Peserta</label>
+                    <input type="text" id="nama-peserta" required class="mt-1 flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm">
+                </div>
+                <div class="flex justify-end gap-2 pt-4">
+                    <button type="button" id="cancel-btn" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 border border-slate-200 bg-white hover:bg-slate-100">Batal</button>
+                    <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 bg-slate-900 text-white hover:bg-slate-800">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
     
-    // === UI & DOM ELEMENTS ===
-    let activePopperInstance = null, participantIdToInteract = null;
-    const tabelBody = document.getElementById('tabel-peserta-body'), modalTambah = document.getElementById('dialog-tambah-peserta'), modalEdit = document.getElementById('dialog-edit-peserta'), modalHapus = document.getElementById('dialog-konfirmasi-hapus'), modalStatus = document.getElementById('dialog-ubah-status');
-    const btnSimpanPeserta = document.getElementById('btn-simpan-peserta'), btnKonfirmasiHapus = document.getElementById('btn-konfirmasi-hapus'), btnKonfirmasiUbahStatus = document.getElementById('btn-konfirmasi-ubah-status'), btnKonfirmasiEdit = document.getElementById('btn-konfirmasi-edit');
+    <div id="delete-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 opacity-0 pointer-events-none">
+        <div class="modal-content bg-white w-full max-w-md p-6 rounded-lg shadow-xl transform scale-95">
+            <h2 class="text-lg font-semibold">Konfirmasi Hapus</h2>
+            <p class="text-sm text-slate-500 mt-2">Apakah Anda yakin ingin menghapus peserta ini? Tindakan ini tidak dapat dibatalkan.</p>
+            <div class="flex justify-end gap-2 pt-6">
+                <button type="button" id="cancel-delete-btn" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 border border-slate-200 bg-white hover:bg-slate-100">Batal</button>
+                <button type="button" id="confirm-delete-btn" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 bg-red-600 text-white hover:bg-red-700">Hapus</button>
+            </div>
+        </div>
+    </div>
     
-    // === RENDER FUNCTION (FORMAT TABEL) ===
-    const renderTable = () => {
-        tabelBody.innerHTML = '';
-        if (participants.length === 0) {
-            tabelBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-500">Belum ada peserta.</td></tr>`;
-            return;
-        }
-        participants.forEach(p => {
-            const initials = p.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-            const statusClass = p.paymentStatus === 'Lunas' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
-            const winnerBadge = p.hasWon ? `<span class="pemenang-badge inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800"><i data-lucide="trophy" class="h-3 w-3"></i>Menang</span>` : '';
-            const rowHTML = `
-                <tr data-id="${p.id}">
-                    <td class="p-4 align-middle"><div class="flex items-center gap-3"><span class="flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-sm font-medium text-slate-600">${initials}</span><span class="nama-peserta font-medium text-slate-800">${p.name}</span></div></td>
-                    <td class="p-4 align-middle"><span class="status-iuran cursor-pointer inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusClass}">${p.paymentStatus}</span></td>
-                    <td class="keterangan-cell p-4 align-middle">${winnerBadge}</td>
-                    <td class="p-4 align-middle text-right">
-                        <div class="relative inline-block text-left">
-                            <button class="btn-aksi-trigger p-2 hover:bg-slate-100 rounded-full"><i data-lucide="more-horizontal" class="h-4 w-4 pointer-events-none"></i></button>
-                            <div class="dropdown-aksi hidden absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10"><div class="py-1"><a href="#" class="btn-edit-peserta text-slate-700 flex items-center gap-3 px-4 py-2 text-sm hover:bg-slate-100"><i data-lucide="pencil" class="h-4 w-4 pointer-events-none"></i><span>Edit</span></a><a href="#" class="btn-hapus-peserta text-red-600 flex items-center gap-3 px-4 py-2 text-sm hover:bg-slate-100"><i data-lucide="trash-2" class="h-4 w-4 pointer-events-none"></i><span>Hapus</span></a></div></div>
-                        </div>
-                    </td>
-                </tr>`;
-            tabelBody.insertAdjacentHTML('beforeend', rowHTML);
-        });
-        lucide.createIcons();
-    };
-
-    // === UNIVERSAL FUNCTIONS & LISTENERS ===
-    const bukaModal = (el) => { document.body.classList.add('overflow-hidden'); el.classList.add('is-open'); };
-    const tutupModal = (el) => { document.body.classList.remove('overflow-hidden'); el.classList.remove('is-open'); };
-    const closeAllDropdowns = () => { if (activePopperInstance) { activePopperInstance.destroy(); activePopperInstance = null; } document.querySelectorAll('.dropdown-aksi').forEach(d => d.classList.add('hidden')); };
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
     
-    document.querySelectorAll('[data-ui-target]').forEach(b => b.addEventListener('click', () => bukaModal(document.getElementById(b.dataset.uiTarget))));
-    document.querySelectorAll('[data-ui-close]').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); tutupModal(b.closest('.ui-overlay')); }));
-    window.addEventListener('click', e => { if (!e.target.closest('.btn-aksi-trigger')) closeAllDropdowns(); });
-
-    // === SIDEBAR LOGIC ===
-    const sidebar = document.getElementById('sidebar'), mobileMenuBtn = document.getElementById('mobile-menu-btn'), closeSidebarBtn = document.getElementById('close-sidebar-btn'), sidebarLinks = document.querySelectorAll('.sidebar-link');
-    if(sidebar && mobileMenuBtn && closeSidebarBtn){
-        const openSidebar = () => sidebar.classList.remove('-translate-x-full');
-        const closeSidebar = () => sidebar.classList.add('-translate-x-full');
-        mobileMenuBtn.addEventListener('click', openSidebar);
-        closeSidebarBtn.addEventListener('click', closeSidebar);
-        sidebarLinks.forEach(link => link.addEventListener('click', () => { if(window.innerWidth < 1024) closeSidebar() }));
-    }
-
-    // === ACTION HANDLERS ===
-    btnSimpanPeserta.addEventListener('click', () => {
-        const namaInput = document.getElementById('nama-peserta-tambah'); const nama = namaInput.value.trim(); if(nama){
-        participants.push({ id: Date.now(), name: nama, paymentStatus: 'Menunggu', hasWon: false });
-        saveParticipants(); renderTable(); namaInput.value = ''; tutupModal(modalTambah); }
-    });
-    
-    tabelBody.addEventListener('click', e => {
-        const row = e.target.closest('tr'); if (!row) return;
-        const id = Number(row.dataset.id); const p = participants.find(p => p.id === id); if(!p) return;
-        
-        const trigger = e.target.closest('.btn-aksi-trigger');
-        if (trigger) {
-            e.stopPropagation();
-            const dropdown = trigger.nextElementSibling; const isHidden = dropdown.classList.contains('hidden');
-            closeAllDropdowns();
-            if (isHidden) {
-                dropdown.classList.remove('hidden');
-                activePopperInstance = Popper.createPopper(trigger, dropdown, { placement: 'bottom-end', strategy: 'fixed', modifiers: [{ name: 'offset', options: { offset: [0, 8] } }], });
-            }
-            return;
-        }
-        
-        if (e.target.closest('.btn-edit-peserta')) { participantIdToInteract = id; document.getElementById('nama-peserta-edit').value = p.name; bukaModal(modalEdit); }
-        else if (e.target.closest('.btn-hapus-peserta')) { participantIdToInteract = id; document.getElementById('nama-peserta-hapus').textContent = p.name; bukaModal(modalHapus); }
-        else if (e.target.closest('.status-iuran')) { participantIdToInteract = id; document.getElementById('nama-peserta-status').textContent = p.name; bukaModal(modalStatus); }
-        closeAllDropdowns();
-    });
-
-    btnKonfirmasiEdit.addEventListener('click', () => { const newName = document.getElementById('nama-peserta-edit').value.trim(); if (newName && participantIdToInteract) { const i = participants.findIndex(p => p.id === participantIdToInteract); if(i!==-1) participants[i].name = newName; saveParticipants(); renderTable(); } tutupModal(modalEdit); });
-    btnKonfirmasiHapus.addEventListener('click', () => { if (participantIdToInteract) { participants = participants.filter(p => p.id !== participantIdToInteract); saveParticipants(); renderTable(); } tutupModal(modalHapus); });
-    btnKonfirmasiUbahStatus.addEventListener('click', () => { if (participantIdToInteract) { const i = participants.findIndex(p => p.id === participantIdToInteract); if(i!==-1) participants[i].paymentStatus = participants[i].paymentStatus === 'Lunas' ? 'Menunggu' : 'Lunas'; saveParticipants(); renderTable(); } tutupModal(modalStatus); });
-    
-    // === INIT APP ===
-    loadParticipants();
-    renderTable();
-});
-</script>
-
+    <script type="module" src="app.js"></script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>
