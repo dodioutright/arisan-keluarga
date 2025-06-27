@@ -48,15 +48,24 @@
                 <div><h1 class="text-3xl font-bold text-slate-900">Daftar Peserta</h1><p class="text-slate-500 mt-1">Kelola semua peserta arisan di sini.</p></div>
                 <button data-ui-target="dialog-tambah-peserta" class="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium h-11 px-6 py-2 bg-slate-900 text-white hover:bg-slate-800 shadow-sm"><i data-lucide="user-plus" class="h-5 w-5"></i><span>Tambah Peserta</span></button>
             </div>
+            
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
                 <div class="w-full overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="bg-slate-50"><tr class="text-left text-slate-600 font-medium"><th class="p-4">Nama Peserta</th><th class="p-4">Status Iuran</th><th class="p-4">Keterangan</th><th class="p-4 text-right">Aksi</th></tr></thead>
+                    <table class="w-full text-sm min-w-[640px]">
+                        <thead class="bg-slate-50">
+                            <tr class="text-left text-slate-600 font-medium">
+                                <th class="p-4">Nama Peserta</th>
+                                <th class="p-4">Status Iuran</th>
+                                <th class="p-4">Keterangan</th>
+                                <th class="p-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
                         <tbody id="tabel-peserta-body" class="divide-y divide-slate-200">
                             </tbody>
                     </table>
                 </div>
             </div>
+
             <footer class="mt-12 pt-8 border-t border-slate-200 text-center text-sm text-slate-500"><p>© 2025 Arisan. All Rights Reserved.</p><p class="mt-1">Made with ❤️ by Dodi Outright.</p></footer>
         </div>
     </main>
@@ -72,14 +81,18 @@ document.addEventListener('DOMContentLoaded', function () {
     // === STATE & LOCAL STORAGE ===
     let participants = [];
     const PARTICIPANTS_STORAGE_KEY = 'arisan_participants_data';
-    const saveParticipants = () => localStorage.setItem(PARTICIPANTS_STORAGE_KEY, JSON.stringify(participants));
+    const saveParticipants = () => {
+        localStorage.setItem(PARTICIPANTS_STORAGE_KEY, JSON.stringify(participants));
+    };
     const loadParticipants = () => {
         const data = localStorage.getItem(PARTICIPANTS_STORAGE_KEY);
-        if (data) participants = JSON.parse(data);
-        else {
+        if (data) {
+            participants = JSON.parse(data);
+        } else {
             participants = [
                 { id: Date.now(), name: "Budi Utomo", paymentStatus: "Lunas", hasWon: false },
-                { id: Date.now() + 1, name: "Siti Perwita", paymentStatus: "Lunas", hasWon: true }
+                { id: Date.now() + 1, name: "Siti Perwita", paymentStatus: "Lunas", hasWon: true },
+                { id: Date.now() + 2, name: "Ahmad Subarjo", paymentStatus: "Menunggu", hasWon: false }
             ];
             saveParticipants();
         }
@@ -90,11 +103,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const tabelBody = document.getElementById('tabel-peserta-body'), modalTambah = document.getElementById('dialog-tambah-peserta'), modalEdit = document.getElementById('dialog-edit-peserta'), modalHapus = document.getElementById('dialog-konfirmasi-hapus'), modalStatus = document.getElementById('dialog-ubah-status');
     const btnSimpanPeserta = document.getElementById('btn-simpan-peserta'), btnKonfirmasiHapus = document.getElementById('btn-konfirmasi-hapus'), btnKonfirmasiUbahStatus = document.getElementById('btn-konfirmasi-ubah-status'), btnKonfirmasiEdit = document.getElementById('btn-konfirmasi-edit');
     
-    // === RENDER FUNCTION (KEMBALI KE FORMAT TABEL) ===
+    // === RENDER FUNCTION (FORMAT TABEL) ===
     const renderTable = () => {
         tabelBody.innerHTML = '';
         if (participants.length === 0) {
-            tabelBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500">Belum ada peserta.</td></tr>`;
+            tabelBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-500">Belum ada peserta.</td></tr>`;
             return;
         }
         participants.forEach(p => {
