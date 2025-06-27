@@ -1,4 +1,3 @@
-// Import fungsi Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where, setDoc, getDoc, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -65,7 +64,24 @@ function initLoginPage() {
 }
 
 function initCommonElements(user) {
-    // ... (Logika Sidebar & Logout tidak berubah) ...
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileSidebar = document.getElementById('mobile-sidebar');
+    const sidebarContent = document.getElementById('sidebar-content');
+    const closeSidebarButton = document.getElementById('close-sidebar-button');
+    
+    const openSidebar = () => { if(mobileSidebar) { document.body.style.overflow = 'hidden'; mobileSidebar.classList.remove('opacity-0', 'pointer-events-none'); sidebarContent.classList.remove('translate-x-full'); } };
+    const closeSidebar = () => { if(mobileSidebar) { document.body.style.overflow = ''; sidebarContent.classList.add('translate-x-full'); mobileSidebar.classList.add('opacity-0'); setTimeout(() => mobileSidebar.classList.add('pointer-events-none'), 300); } };
+
+    if (mobileMenuButton) mobileMenuButton.addEventListener('click', openSidebar);
+    if (closeSidebarButton) closeSidebarButton.addEventListener('click', closeSidebar);
+    if (mobileSidebar) mobileSidebar.addEventListener('click', (e) => { if (e.target === mobileSidebar) closeSidebar(); });
+
+    const handleLogout = () => signOut(auth);
+    document.getElementById('logout-button-desktop')?.addEventListener('click', handleLogout);
+    document.getElementById('logout-button-mobile')?.addEventListener('click', handleLogout);
+
+    const userEmailElement = document.getElementById('user-email');
+    if (userEmailElement) userEmailElement.textContent = user.email;
 }
 
 function initDashboardPage() {
@@ -74,37 +90,88 @@ function initDashboardPage() {
     const danaTerkumpulEl = document.getElementById('dana-terkumpul-card');
     const tanggalKocokanEl = document.getElementById('tanggal-kocokan-card');
     const pemenangTerakhirEl = document.getElementById('pemenang-terakhir-card');
+    const kocokanBtn = document.getElementById('kocokan-btn');
+    const kocokanWarningEl = document.getElementById('kocokan-warning-message');
+    const confirmModal = document.getElementById('confirm-kocokan-modal');
+    const kocokanModal = document.getElementById('kocokan-modal');
+    const animasiDiv = document.getElementById('animasi-kocokan');
+    const pemenangDiv = document.getElementById('pemenang-container');
+    const namaAnimasiEl = document.getElementById('nama-animasi-display');
+    const namaPemenangEl = document.getElementById('nama-pemenang');
+    const tutupModalBtn = document.getElementById('tutup-modal-pemenang');
+
+    const showModal = (target) => { if(target) { target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); } };
+    const hideModal = (target) => { if(target) { target.classList.add('opacity-0'); target.querySelector('.modal-content').classList.add('scale-95'); setTimeout(() => target.classList.add('pointer-events-none'), 300); } };
+    
+    if(tutupModalBtn) tutupModalBtn.addEventListener('click', () => hideModal(kocokanModal));
+
+    const setKocokanButtonState = (state, message = '') => {
+        if (!kocokanBtn) return;
+        const defaultIcon = '<i data-lucide="play-circle" class="h-5 w-5"></i><span>Lakukan Kocokan</span>';
+        const loadingIcon = '<i data-lucide="loader-circle" class="h-5 w-5 animate-spin"></i><span>Memproses...</span>';
+
+        kocokanBtn.disabled = (state === 'disabled' || state === 'loading');
+        
+        if (state === 'loading') {
+            kocokanBtn.innerHTML = loadingIcon;
+        } else {
+            kocokanBtn.innerHTML = defaultIcon;
+        }
+
+        if (kocokanWarningEl) {
+            kocokanWarningEl.textContent = message;
+            kocokanWarningEl.classList.toggle('hidden', !message);
+        }
+        lucide.createIcons();
+    };
+
+    const getPengaturan = async () => {
+        const pengaturanRef = doc(db, "pengaturan", "umum");
+        const docSnap = await getDoc(pengaturanRef);
+        if (docSnap.exists()) return docSnap.data();
+        
+        const now = new Date();
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const year = nextMonth.getFullYear();
+        const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
+        const day = String(nextMonth.getDate()).padStart(2, '0');
+        return { biaya_per_peserta: 100000, tanggal_kocokan: `${year}-${month}-${day}` };
+    };
+    
+    const getPemenangTerakhir = async (allPesertaDocs) => {
+        const pemenangDoc = allPesertaDocs.find(doc => doc.data().status_menang === true);
+        return pemenangDoc ? pemenangDoc.data().nama : "Belum ada pemenang";
+    };
 
     const loadDashboardData = async () => {
         console.log("Dashboard: Memuat data...");
         try {
-            // Mengambil semua data peserta dan pengaturan
-            const pengaturanRef = doc(db, "pengaturan", "umum");
-            const [pengaturanSnap, pesertaSnap] = await Promise.all([
-                getDoc(pengaturanRef),
+            const [pengaturan, semuaPesertaSnap] = await Promise.all([
+                getPengaturan(),
                 getDocs(collection(db, "peserta"))
             ]);
             console.log("Dashboard: Data berhasil diambil dari Firestore.");
-
-            // Menentukan nilai pengaturan (dari DB atau default)
-            let pengaturan = { biaya_per_peserta: 100000, tanggal_kocokan: new Date().toISOString().split('T')[0] };
-            if (pengaturanSnap.exists()) {
-                pengaturan = pengaturanSnap.data();
-            }
-
-            const semuaPeserta = pesertaSnap.docs.map(doc => doc.data());
-            const pesertaAktif = semuaPeserta.filter(p => p.aktif === true);
-            const pesertaLunas = pesertaAktif.filter(p => p.status_bayar === true);
-            const pemenang = semuaPeserta.find(p => p.status_menang === true);
-
-            // Update UI
-            totalPesertaEl.textContent = `${pesertaAktif.length} Orang`;
-            const totalDana = pesertaLunas.length * pengaturan.biaya_per_peserta;
+            
+            const pemenangTerakhir = await getPemenangTerakhir(semuaPesertaSnap.docs);
+            const pesertaAktifDocs = semuaPesertaSnap.docs.filter(doc => doc.data().aktif === true);
+            
+            totalPesertaEl.textContent = `${pesertaAktifDocs.length} Orang`;
+            const pesertaLunas = pesertaAktifDocs.filter(doc => doc.data().status_bayar === true).length;
+    
+            const totalDana = pesertaLunas * pengaturan.biaya_per_peserta;
             danaTerkumpulEl.textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalDana);
-            const tanggal = new Date(pengaturan.tanggal_kocokan + 'T00:00:00');
+            
+            const tanggal = new Date(pengaturan.tanggal_kocokan + 'T00:00:00'); 
             tanggalKocokanEl.textContent = tanggal.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-            pemenangTerakhirEl.textContent = pemenang ? pemenang.nama : "Belum ada pemenang";
-            console.log("Dashboard: UI berhasil diperbarui.");
+            
+            pemenangTerakhirEl.textContent = pemenangTerakhir;
+            
+            const belumBayarCount = pesertaAktifDocs.length - pesertaLunas;
+            if (belumBayarCount > 0) {
+                setKocokanButtonState('disabled', `Ada ${belumBayarCount} peserta belum membayar iuran.`);
+            } else {
+                setKocokanButtonState('enabled');
+            }
 
         } catch (error) {
             console.error("Dashboard: Gagal memuat data:", error);
@@ -112,10 +179,97 @@ function initDashboardPage() {
             danaTerkumpulEl.textContent = 'Error';
             tanggalKocokanEl.textContent = 'Error';
             pemenangTerakhirEl.textContent = 'Error';
+            setKocokanButtonState('disabled', 'Gagal memuat data.');
         }
     };
+
+    const proceedWithDraw = async () => {
+        setKocokanButtonState('loading', 'Mengambil data peserta...');
+        try {
+            const semuaPesertaSnap = await getDocs(collection(db, "peserta"));
+            const eligiblePeserta = [];
+            semuaPesertaSnap.forEach(doc => {
+                const data = doc.data();
+                if (data.aktif && data.status_bayar && !data.status_menang) {
+                    eligiblePeserta.push({ id: doc.id, ...data });
+                }
+            });
+
+            if (eligiblePeserta.length === 0) {
+                showToast("Tidak ada peserta yang memenuhi syarat.", false);
+                setKocokanButtonState('enabled');
+                return;
+            }
+
+            pemenangDiv.classList.add('hidden');
+            animasiDiv.classList.remove('hidden');
+            showModal(kocokanModal);
+
+            let animationInterval = setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * eligiblePeserta.length);
+                namaAnimasiEl.textContent = eligiblePeserta[randomIndex].nama;
+            }, 75);
+
+            setTimeout(() => { clearInterval(animationInterval); animationInterval = setInterval(() => { const i = Math.floor(Math.random() * eligiblePeserta.length); namaAnimasiEl.textContent = eligiblePeserta[i].nama; }, 150); }, 2000);
+            setTimeout(() => { clearInterval(animationInterval); animationInterval = setInterval(() => { const i = Math.floor(Math.random() * eligiblePeserta.length); namaAnimasiEl.textContent = eligiblePeserta[i].nama; }, 400); }, 3500);
+
+            setTimeout(async () => {
+                clearInterval(animationInterval);
+                const pemenang = eligiblePeserta[Math.floor(Math.random() * eligiblePeserta.length)];
+                await updateDoc(doc(db, 'peserta', pemenang.id), { status_menang: true });
+                localStorage.removeItem('pesertaCache');
+
+                namaAnimasiEl.textContent = pemenang.nama;
+                namaPemenangEl.textContent = pemenang.nama;
+                
+                setTimeout(() => {
+                    animasiDiv.classList.add('hidden');
+                    pemenangDiv.classList.remove('hidden');
+                    lucide.createIcons();
+                    if(window.confetti) confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+                }, 500);
+                
+                loadDashboardData();
+            }, 4500);
+
+        } catch (error) {
+            console.error("Error saat proses kocokan:", error);
+            showToast("Gagal melakukan proses kocokan.", false);
+            setKocokanButtonState('enabled');
+        }
+    };
+    
+    const handleKocokan = async () => {
+        setKocokanButtonState('loading', 'Memeriksa jadwal...');
+        try {
+            const pengaturan = await getPengaturan();
+            const tanggalKocokan = new Date(pengaturan.tanggal_kocokan + 'T00:00:00');
+            const hariIni = new Date();
+            hariIni.setHours(0, 0, 0, 0);
+
+            if (hariIni < tanggalKocokan) {
+                showModal(confirmModal);
+                document.getElementById('cancel-kocokan-btn').onclick = () => {
+                    hideModal(confirmModal);
+                    setKocokanButtonState('enabled');
+                };
+                document.getElementById('proceed-kocokan-btn').onclick = () => {
+                    hideModal(confirmModal);
+                    proceedWithDraw();
+                };
+            } else {
+                proceedWithDraw();
+            }
+        } catch (error) {
+            console.error("Error memeriksa jadwal kocokan:", error);
+            showToast("Gagal memeriksa jadwal.", false);
+            setKocokanButtonState('enabled');
+        }
+    };
+    
+    if (kocokanBtn) kocokanBtn.addEventListener('click', handleKocokan);
+    
     loadDashboardData();
-    // ... (Logika untuk fitur kocokan akan ditambahkan kembali setelah ini stabil)
 }
 
 function initPesertaPage() {
@@ -143,7 +297,6 @@ function initPesertaPage() {
     document.getElementById('cancel-btn').addEventListener('click', () => hideModal(modal));
     document.getElementById('cancel-delete-btn').addEventListener('click', () => hideModal(deleteModal));
 
-    // KEMBALI KE METODE STABIL: SIMPAN DULU, BARU MUAT ULANG
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = idInput.value;
@@ -156,16 +309,14 @@ function initPesertaPage() {
         
         try {
             if (id) {
-                // Saat edit, jangan ubah status 'aktif' atau field lain yang tidak ada di form
                 await updateDoc(doc(db, 'peserta', id), dataToSave);
                 showToast('Data berhasil diperbarui!');
             } else {
-                // Saat tambah, sertakan nilai default
                 await addDoc(collection(db, 'peserta'), { ...dataToSave, aktif: true });
                 showToast('Peserta baru ditambahkan!');
             }
             hideModal(modal);
-            loadPeserta(); // Muat ulang data setelah sukses
+            loadPeserta();
         } catch (error) { 
             console.error("Peserta: Gagal menyimpan data:", error);
             showToast('Terjadi kesalahan saat menyimpan.', false); 
@@ -179,7 +330,7 @@ function initPesertaPage() {
             await deleteDoc(doc(db, 'peserta', docIdToDelete));
             showToast('Peserta berhasil dihapus!');
             hideModal(deleteModal);
-            loadPeserta(); // Muat ulang data setelah sukses
+            loadPeserta();
         } catch (error) { 
             console.error("Peserta: Gagal menghapus data:", error);
             showToast('Gagal menghapus.', false);
@@ -241,5 +392,51 @@ function initPesertaPage() {
 
 function initPengaturanPage() {
     console.log("Pengaturan: Inisialisasi halaman...");
-    // ... (Logika halaman pengaturan tidak berubah, sudah stabil)
+    const form = document.getElementById('pengaturan-form');
+    const biayaInput = document.getElementById('biaya_per_peserta');
+    const tanggalInput = document.getElementById('tanggal_kocokan');
+    const simpanBtn = document.getElementById('simpan-btn');
+    const pengaturanRef = doc(db, "pengaturan", "umum");
+
+    const loadPengaturan = async () => {
+        try {
+            const docSnap = await getDoc(pengaturanRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                biayaInput.value = data.biaya_per_peserta;
+                tanggalInput.value = data.tanggal_kocokan;
+            } else {
+                biayaInput.value = 100000;
+                const now = new Date();
+                const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                const year = nextMonth.getFullYear();
+                const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
+                const day = String(nextMonth.getDate()).padStart(2, '0');
+                tanggalInput.value = `${year}-${month}-${day}`;
+            }
+        } catch (error) { showToast("Gagal memuat pengaturan.", false); }
+    };
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        simpanBtn.disabled = true;
+        simpanBtn.innerHTML = '<i data-lucide="loader-circle" class="h-4 w-4 animate-spin"></i><span>Menyimpan...</span>';
+        lucide.createIcons();
+        
+        const dataToSave = {
+            biaya_per_peserta: parseInt(biayaInput.value, 10),
+            tanggal_kocokan: tanggalInput.value,
+        };
+        try {
+            await setDoc(pengaturanRef, dataToSave);
+            showToast("Pengaturan berhasil disimpan!");
+        } catch (error) {
+            showToast("Gagal menyimpan pengaturan.", false);
+        } finally {
+            simpanBtn.disabled = false;
+            simpanBtn.innerHTML = '<i data-lucide="save" class="h-4 w-4"></i><span>Simpan Pengaturan</span>';
+            lucide.createIcons();
+        }
+    });
+    loadPengaturan();
 }
