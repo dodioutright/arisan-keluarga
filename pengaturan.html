@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id" class="bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan - Aplikasi Arisan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        /* Menambahkan style untuk input tanggal agar placeholder terlihat */
+        input[type="date"]:before {
+            content: attr(placeholder) !important;
+            color: #94a3b8; /* text-slate-400 */
+            margin-right: 0.5em;
+        }
+        input[type="date"]:focus:before,
+        input[type="date"]:valid:before {
+            content: "";
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
+        <nav class="mx-auto max-w-4xl px-4">
+            <div class="flex h-16 items-center justify-between">
+                <a href="dashboard.html" class="flex items-center gap-2 text-slate-900"><div class="bg-slate-900 p-2 rounded-lg"><i data-lucide="gem" class="h-5 w-5 text-white"></i></div><span class="font-bold text-lg">Arisan</span></a>
+                <div class="hidden md:flex items-center gap-2">
+                    <a href="dashboard.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="layout-dashboard" class="h-4 w-4"></i><span>Dashboard</span></a>
+                    <a href="peserta.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="users" class="h-4 w-4"></i><span>Peserta</span></a>
+                    <a href="pengaturan.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold bg-slate-100 text-slate-900"><i data-lucide="settings" class="h-4 w-4"></i><span>Pengaturan</span></a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="logout-button-desktop" title="Keluar" class="hidden md:block p-2 rounded-md hover:bg-slate-100 text-slate-600"><i data-lucide="log-out" class="h-5 w-5"></i></button>
+                    <button id="mobile-menu-button" class="md:hidden p-2 rounded-md hover:bg-slate-100 text-slate-600"><i data-lucide="menu" class="h-6 w-6"></i></button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div id="mobile-sidebar" class="fixed inset-0 z-40 flex justify-end bg-black bg-opacity-60 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div id="sidebar-content" class="relative w-72 max-w-[85%] bg-white h-full shadow-xl transition-transform duration-300 transform translate-x-full">
+            <div class="flex items-center justify-between p-4 border-b"><h2 class="font-bold text-lg">Menu</h2><button id="close-sidebar-button" class="p-2 rounded-full hover:bg-slate-100"><i data-lucide="x" class="h-5 w-5"></i></button></div>
+            <div class="flex flex-col justify-between h-[calc(100%-65px)] p-4">
+                <nav class="space-y-2">
+                    <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="layout-dashboard" class="h-5 w-5"></i><span>Dashboard</span></a>
+                    <a href="peserta.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="users" class="h-5 w-5"></i><span>Peserta</span></a>
+                    <a href="pengaturan.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium bg-slate-100"><i data-lucide="settings" class="h-5 w-5"></i><span>Pengaturan</span></a>
+                </nav>
+                <div><div class="border-t pt-4 flex items-center justify-between"><span id="user-email" class="text-sm text-slate-600 truncate"></span><button id="logout-button-mobile" title="Keluar" class="p-2 rounded-md hover:bg-slate-100 text-slate-600"><i data-lucide="log-out" class="h-5 w-5"></i></button></div></div>
+            </div>
+        </div>
+    </div>
+
+    <main class="mx-auto max-w-4xl p-4 md:p-6 lg:p-8">
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-slate-900">Pengaturan Arisan</h1>
+            <p class="text-sm text-slate-500 mt-1">Atur biaya iuran dan jadwal kocokan di halaman ini.</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <form id="pengaturan-form" class="space-y-6 max-w-lg">
+                <div>
+                    <label for="biaya_per_peserta" class="block text-sm font-medium text-slate-700 mb-1">Biaya Iuran per Peserta</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">Rp</span>
+                        <input type="number" id="biaya_per_peserta" placeholder="100000" min="0" required class="flex h-10 w-full rounded-md border border-slate-300 bg-transparent pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="tanggal_kocokan" class="block text-sm font-medium text-slate-700 mb-1">Tanggal Kocokan Berikutnya</label>
+                    <input type="date" id="tanggal_kocokan" placeholder="Pilih tanggal" required class="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+                </div>
+                
+                <div class="pt-2">
+                    <button type="submit" id="simpan-btn" class="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-10 px-6 py-2 bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50">
+                        <i data-lucide="save" class="h-4 w-4"></i>
+                        <span>Simpan Pengaturan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
+
+    <script type="module">
+        // Import fungsi Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // --- KONFIGURASI FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAWOaZVoiyloMY-UUJHeccEKR9CWYc-d7w",
+            authDomain: "arisan-keluarga1.firebaseapp.com",
+            projectId: "arisan-keluarga1",
+            storageBucket: "arisan-keluarga1.firebasestorage.app",
+            messagingSenderId: "345958108395",
+            appId: "1:345958108395:web:700efa4296a8c2857142ae",
+            measurementId: "G-W3G810D7YL"
+        };
+        
+        // Inisialisasi
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        const showToast = (message, isSuccess = true) => {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `w-full max-w-xs p-3 rounded-lg text-white ${isSuccess ? 'bg-green-600' : 'bg-red-600'} shadow-lg`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        };
+        
+        function initCommonElements(user) { /* ... (Logika Sidebar & Logout) ... */ }
+
+        // --- Logika Halaman Pengaturan ---
+        function initPengaturanPage() {
+            console.log("Initializing Pengaturan Page...");
+            
+            // Ambil elemen form
+            const form = document.getElementById('pengaturan-form');
+            const biayaInput = document.getElementById('biaya_per_peserta');
+            const tanggalInput = document.getElementById('tanggal_kocokan');
+            const simpanBtn = document.getElementById('simpan-btn');
+
+            // Definisikan referensi dokumen
+            const pengaturanRef = doc(db, "pengaturan", "umum");
+
+            // Fungsi untuk memuat data pengaturan
+            const loadPengaturan = async () => {
+                console.log("Mencoba memuat pengaturan dari Firestore...");
+                try {
+                    const docSnap = await getDoc(pengaturanRef);
+                    if (docSnap.exists()) {
+                        console.log("Data pengaturan ditemukan:", docSnap.data());
+                        const data = docSnap.data();
+                        biayaInput.value = data.biaya_per_peserta;
+                        tanggalInput.value = data.tanggal_kocokan;
+                    } else {
+                        console.log("Data pengaturan tidak ditemukan, menggunakan nilai default.");
+                        // Isi dengan nilai default jika dokumen belum ada
+                        biayaInput.value = 100000;
+                        
+                        // Default: tanggal 1 bulan depan
+                        const now = new Date();
+                        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 1);
+                        nextMonth.setDate(nextMonth.getDate() - 1);
+                        const year = nextMonth.getFullYear();
+                        const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
+                        const day = '01';
+                        tanggalInput.value = `${year}-${month}-${day}`;
+                    }
+                } catch (error) {
+                    console.error("Error memuat pengaturan:", error);
+                    showToast("Gagal memuat pengaturan.", false);
+                }
+            };
+
+            // Event listener untuk form submit
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                simpanBtn.disabled = true;
+                simpanBtn.textContent = 'Menyimpan...';
+
+                const dataToSave = {
+                    biaya_per_peserta: parseInt(biayaInput.value, 10),
+                    tanggal_kocokan: tanggalInput.value,
+                };
+
+                console.log("Mencoba menyimpan data:", dataToSave);
+
+                try {
+                    await setDoc(pengaturanRef, dataToSave);
+                    console.log("Pengaturan berhasil disimpan.");
+                    showToast("Pengaturan berhasil disimpan!");
+                } catch (error) {
+                    console.error("Error menyimpan pengaturan:", error);
+                    showToast("Gagal menyimpan pengaturan.", false);
+                } finally {
+                    simpanBtn.disabled = false;
+                    simpanBtn.innerHTML = '<i data-lucide="save" class="h-4 w-4"></i><span>Simpan Pengaturan</span>';
+                    lucide.createIcons();
+                }
+            });
+
+            // Panggil fungsi pemuatan data saat halaman diinisialisasi
+            loadPengaturan();
+        }
+        
+        // --- ROUTING ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                initCommonElements(user); // Selalu inisialisasi elemen umum
+                // Jalankan logika khusus halaman pengaturan
+                if (window.location.pathname.includes('pengaturan.html')) {
+                    initPengaturanPage();
+                }
+            } else {
+                // Redirect jika tidak login dan mencoba akses halaman ini
+                window.location.href = 'index.html';
+            }
+        });
+        
+        lucide.createIcons();
+    </script>
+
+</body>
+</html>
