@@ -52,76 +52,24 @@
                 <h2 class="font-bold text-lg text-slate-800">Siap untuk Pemenang Berikutnya?</h2>
                 <p class="text-sm text-slate-500">Klik tombol di samping untuk memulai proses pengocokan arisan.</p>
             </div>
-            <button id="kocokan-btn" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-11 px-6 py-2 bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50">
-                <i data-lucide="play-circle" class="h-5 w-5"></i>
-                <span>Lakukan Kocokan</span>
-            </button>
+            <div class="w-full sm:w-auto flex flex-col items-end">
+                <button id="kocokan-btn" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-11 px-6 py-2 bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i data-lucide="play-circle" class="h-5 w-5"></i>
+                    <span>Lakukan Kocokan</span>
+                </button>
+                <p id="kocokan-warning-message" class="text-xs text-red-600 mt-2 text-right hidden"></p>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
-                <div class="bg-blue-100 p-3 rounded-lg"><i data-lucide="users" class="h-7 w-7 text-blue-600"></i></div>
-                <div>
-                    <p class="text-sm text-slate-500">Total Peserta</p>
-                    <p id="total-peserta-card" class="text-2xl font-bold text-slate-900">Memuat...</p>
-                </div>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
-                <div class="bg-green-100 p-3 rounded-lg"><i data-lucide="wallet" class="h-7 w-7 text-green-600"></i></div>
-                <div>
-                    <p class="text-sm text-slate-500">Dana Terkumpul</p>
-                    <p id="dana-terkumpul-card" class="text-2xl font-bold text-slate-900">Memuat...</p>
-                </div>
-            </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
-                <div class="bg-orange-100 p-3 rounded-lg"><i data-lucide="calendar-clock" class="h-7 w-7 text-orange-600"></i></div>
-                <div>
-                    <p class="text-sm text-slate-500">Kocokan Berikutnya</p>
-                    <p id="tanggal-kocokan-card" class="text-2xl font-bold text-slate-900">Memuat...</p>
-                </div>
-            </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
-                <div class="bg-yellow-100 p-3 rounded-lg"><i data-lucide="trophy" class="h-7 w-7 text-yellow-600"></i></div>
-                <div>
-                    <p class="text-sm text-slate-500">Pemenang Terakhir</p>
-                    <p class="text-2xl font-bold text-slate-900">-</p>
-                </div>
-            </div>
-        </div>
     </main>
     
-    <div id="kocokan-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4 opacity-0 pointer-events-none">
-        <div class="modal-content bg-white w-full max-w-md p-6 sm:p-8 rounded-2xl shadow-xl transform scale-95 text-center">
-            
-            <div id="animasi-kocokan">
-                <h2 class="text-xl font-bold text-slate-800">Mengocok Pemenang...</h2>
-                <p class="text-slate-500 mt-2">Harap tunggu, sistem sedang memilih pemenang secara acak.</p>
-                <div class="my-8 h-24 flex items-center justify-center bg-slate-100 rounded-lg overflow-hidden">
-                    <span id="nama-animasi-display" class="text-3xl font-bold text-slate-700 transition-all duration-100"></span>
-                </div>
-            </div>
-
-            <div id="pemenang-container" class="hidden">
-                <i data-lucide="party-popper" class="mx-auto h-16 w-16 text-yellow-500"></i>
-                <h2 class="text-2xl font-bold text-slate-800 mt-4">Selamat kepada Pemenang!</h2>
-                <div class="my-6 bg-green-50 border-2 border-green-200 rounded-lg p-4">
-                    <p id="nama-pemenang" class="text-3xl font-extrabold text-green-700"></p>
-                </div>
-                <button id="tutup-modal-pemenang" class="w-full inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-slate-200 text-slate-800 hover:bg-slate-300">Tutup</button>
-            </div>
+    <div id="kocokan-modal" class="modal-overlay ...">
         </div>
-    </div>
 
-    <div id="confirm-kocokan-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 opacity-0 pointer-events-none">
-        <div class="modal-content bg-white w-full max-w-md p-6 rounded-lg shadow-xl transform scale-95">
-            <h2 class="text-lg font-semibold">Konfirmasi Kocokan</h2>
-            <p class="text-sm text-slate-500 mt-2">Jadwal kocokan belum tiba. Apakah Anda yakin ingin melakukan pengocokan sekarang?</p>
-            <div class="flex justify-end gap-2 pt-6">
-                <button type="button" id="cancel-kocokan-btn" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 border border-slate-200 bg-white hover:bg-slate-100">Batal</button>
-                <button type="button" id="proceed-kocokan-btn" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 bg-slate-900 text-white hover:bg-slate-800">Ya, Lanjutkan</button>
-            </div>
+    <div id="confirm-kocokan-modal" class="modal-overlay ...">
         </div>
-    </div>
     
     <script type="module" src="app.js"></script>
     <script>lucide.createIcons();</script>
