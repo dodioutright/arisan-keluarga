@@ -34,13 +34,20 @@ const showToast = (message, isSuccess = true) => {
 onAuthStateChanged(auth, (user) => {
     const protectedPages = ['dashboard.html', 'peserta.html', 'pengaturan.html'];
     if (user) {
-        if (currentPage === 'index.html' || currentPage === '') { window.location.href = 'dashboard.html'; return; }
+        if (currentPage === 'index.html' || currentPage === '') {
+            window.location.href = 'dashboard.html';
+            return;
+        }
         initCommonElements(user);
         if (currentPage === 'dashboard.html') initDashboardPage();
         if (currentPage === 'peserta.html') initPesertaPage();
         if (currentPage === 'pengaturan.html') initPengaturanPage();
+
     } else {
-        if (protectedPages.includes(currentPage)) { window.location.href = 'index.html'; return; }
+        if (protectedPages.includes(currentPage)) {
+            window.location.href = 'index.html';
+            return;
+        }
         if (currentPage === 'index.html' || currentPage === '') initLoginPage();
     }
 });
@@ -65,13 +72,27 @@ function initCommonElements(user) {
     const mobileSidebar = document.getElementById('mobile-sidebar');
     const sidebarContent = document.getElementById('sidebar-content');
     const closeSidebarButton = document.getElementById('close-sidebar-button');
-    
-    const openSidebar = () => { if(mobileSidebar) { document.body.style.overflow = 'hidden'; mobileSidebar.classList.remove('opacity-0', 'pointer-events-none'); sidebarContent.classList.remove('translate-x-full'); } };
-    const closeSidebar = () => { if(mobileSidebar) { document.body.style.overflow = ''; sidebarContent.classList.add('translate-x-full'); mobileSidebar.classList.add('opacity-0'); setTimeout(() => mobileSidebar.classList.add('pointer-events-none'), 300); } };
 
+    const openSidebar = () => {
+        if (mobileSidebar) {
+            document.body.style.overflow = 'hidden';
+            mobileSidebar.classList.remove('opacity-0', 'pointer-events-none');
+            sidebarContent.classList.remove('translate-x-full');
+        }
+    };
+    const closeSidebar = () => {
+        if (mobileSidebar) {
+            document.body.style.overflow = '';
+            sidebarContent.classList.add('translate-x-full');
+            mobileSidebar.classList.add('opacity-0');
+            setTimeout(() => mobileSidebar.classList.add('pointer-events-none'), 300);
+        }
+    };
     if (mobileMenuButton) mobileMenuButton.addEventListener('click', openSidebar);
     if (closeSidebarButton) closeSidebarButton.addEventListener('click', closeSidebar);
-    if (mobileSidebar) mobileSidebar.addEventListener('click', (e) => { if (e.target === mobileSidebar) closeSidebar(); });
+    if (mobileSidebar) mobileSidebar.addEventListener('click', (e) => {
+        if (e.target === mobileSidebar) closeSidebar();
+    });
 
     const handleLogout = () => signOut(auth);
     document.getElementById('logout-button-desktop')?.addEventListener('click', handleLogout);
@@ -95,18 +116,29 @@ function initDashboardPage() {
     const namaPemenangEl = document.getElementById('nama-pemenang');
     const tutupModalBtn = document.getElementById('tutup-modal-pemenang');
 
-    const showModal = (target) => { if(target) { target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); }};
-    const hideModal = (target) => { if(target) { target.classList.add('opacity-0'); target.querySelector('.modal-content').classList.add('scale-95'); setTimeout(() => target.classList.add('pointer-events-none'), 300); }};
+    const showModal = (target) => {
+        if (target) {
+            target.classList.remove('opacity-0', 'pointer-events-none');
+            target.querySelector('.modal-content').classList.remove('scale-95');
+        }
+    };
+    const hideModal = (target) => {
+        if (target) {
+            target.classList.add('opacity-0');
+            target.querySelector('.modal-content').classList.add('scale-95');
+            setTimeout(() => target.classList.add('pointer-events-none'), 300);
+        }
+    };
 
-    if(tutupModalBtn) tutupModalBtn.addEventListener('click', () => hideModal(kocokanModal));
+    if (tutupModalBtn) tutupModalBtn.addEventListener('click', () => hideModal(kocokanModal));
 
     const setKocokanButtonState = (state, message = '') => {
         if (!kocokanBtn) return;
         const defaultIcon = '<i data-lucide="play-circle" class="h-5 w-5"></i><span>Lakukan Kocokan</span>';
         const loadingIcon = '<i data-lucide="loader-circle" class="h-5 w-5 animate-spin"></i><span>Memproses...</span>';
-
-        kocokanBtn.disabled = (state === 'disabled' || state === 'loading');
         
+        kocokanBtn.disabled = (state === 'disabled' || state === 'loading');
+
         if (state === 'loading') {
             kocokanBtn.innerHTML = loadingIcon;
         } else {
@@ -126,14 +158,18 @@ function initDashboardPage() {
         const pengaturanRef = doc(db, "pengaturan", "umum");
         const docSnap = await getDoc(pengaturanRef);
         if (docSnap.exists()) return docSnap.data();
-        
+
+        // Default settings if not found
         const now = new Date();
         const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
         const year = nextMonth.getFullYear();
         const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
         const day = String(nextMonth.getDate()).padStart(2, '0');
 
-        return { biaya_per_peserta: 100000, tanggal_kocokan: `${year}-${month}-${day}` };
+        return {
+            biaya_per_peserta: 100000,
+            tanggal_kocokan: `${year}-${month}-${day}`
+        };
     };
 
     const proceedWithDraw = async () => {
@@ -142,7 +178,10 @@ function initDashboardPage() {
             const q = query(collection(db, "peserta"), where("aktif", "==", true), where("status_bayar", "==", true), where("status_menang", "==", false));
             const eligibleSnap = await getDocs(q);
             const eligiblePeserta = [];
-            eligibleSnap.forEach(doc => eligiblePeserta.push({ id: doc.id, ...doc.data() }));
+            eligibleSnap.forEach(doc => eligiblePeserta.push({
+                id: doc.id,
+                ...doc.data()
+            }));
 
             if (eligiblePeserta.length === 0) {
                 showToast("Tidak ada peserta yang memenuhi syarat.", false);
@@ -158,24 +197,43 @@ function initDashboardPage() {
                 const randomIndex = Math.floor(Math.random() * eligiblePeserta.length);
                 namaAnimasiEl.textContent = eligiblePeserta[randomIndex].nama;
             }, 75);
-
-            setTimeout(() => { clearInterval(animationInterval); animationInterval = setInterval(() => { const i = Math.floor(Math.random() * eligiblePeserta.length); namaAnimasiEl.textContent = eligiblePeserta[i].nama; }, 150); }, 2000);
-            setTimeout(() => { clearInterval(animationInterval); animationInterval = setInterval(() => { const i = Math.floor(Math.random() * eligiblePeserta.length); namaAnimasiEl.textContent = eligiblePeserta[i].nama; }, 400); }, 3500);
+            setTimeout(() => {
+                clearInterval(animationInterval);
+                animationInterval = setInterval(() => {
+                    const i = Math.floor(Math.random() * eligiblePeserta.length);
+                    namaAnimasiEl.textContent = eligiblePeserta[i].nama;
+                }, 150);
+            }, 2000);
+            setTimeout(() => {
+                clearInterval(animationInterval);
+                animationInterval = setInterval(() => {
+                    const i = Math.floor(Math.random() * eligiblePeserta.length);
+                    namaAnimasiEl.textContent = eligiblePeserta[i].nama;
+                }, 400);
+            }, 3500);
 
             setTimeout(async () => {
                 clearInterval(animationInterval);
                 const pemenang = eligiblePeserta[Math.floor(Math.random() * eligiblePeserta.length)];
-                await updateDoc(doc(db, 'peserta', pemenang.id), { status_menang: true });
-                localStorage.removeItem('pesertaCache');
+                await updateDoc(doc(db, 'peserta', pemenang.id), {
+                    status_menang: true
+                });
+                localStorage.removeItem('pesertaCache'); // Invalidate cache
 
                 namaAnimasiEl.textContent = pemenang.nama;
                 namaPemenangEl.textContent = pemenang.nama;
-                
+
                 setTimeout(() => {
                     animasiDiv.classList.add('hidden');
                     pemenangDiv.classList.remove('hidden');
                     lucide.createIcons();
-                    if(window.confetti) confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+                    if (window.confetti) confetti({
+                        particleCount: 150,
+                        spread: 90,
+                        origin: {
+                            y: 0.6
+                        }
+                    });
                 }, 500);
 
                 setKocokanButtonState('enabled');
@@ -215,10 +273,11 @@ function initDashboardPage() {
             setKocokanButtonState('enabled');
         }
     };
-    
-    if(kocokanBtn) kocokanBtn.addEventListener('click', handleKocokan);
+
+    if (kocokanBtn) kocokanBtn.addEventListener('click', handleKocokan);
 
     const loadDashboardData = async () => {
+        setKocokanButtonState('loading', 'Memuat data...');
         try {
             const [pengaturan, pesertaSnap] = await Promise.all([
                 getPengaturan(),
@@ -228,10 +287,18 @@ function initDashboardPage() {
             totalPesertaEl.textContent = `${pesertaSnap.size} Orang`;
             const pesertaLunas = pesertaSnap.docs.filter(doc => doc.data().status_bayar === true).length;
             const totalDana = pesertaLunas * pengaturan.biaya_per_peserta;
-            danaTerkumpulEl.textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalDana);
-            const tanggal = new Date(pengaturan.tanggal_kocokan + 'T00:00:00'); 
-            tanggalKocokanEl.textContent = tanggal.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-            
+            danaTerkumpulEl.textContent = new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(totalDana);
+            const tanggal = new Date(pengaturan.tanggal_kocokan + 'T00:00:00');
+            tanggalKocokanEl.textContent = tanggal.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+
             const belumBayarCount = pesertaSnap.size - pesertaLunas;
             if (belumBayarCount > 0) {
                 setKocokanButtonState('disabled', `Ada ${belumBayarCount} peserta belum membayar iuran.`);
@@ -247,12 +314,12 @@ function initDashboardPage() {
             setKocokanButtonState('disabled', 'Gagal memuat data.');
         }
     };
+
     loadDashboardData();
 }
 
 function initPesertaPage() {
     const listBody = document.getElementById('peserta-list-manajemen');
-    const skeletonBody = document.getElementById('peserta-list-skeleton');
     const totalText = document.getElementById('total-peserta-text');
     const modal = document.getElementById('peserta-modal');
     const deleteModal = document.getElementById('delete-modal');
@@ -263,9 +330,20 @@ function initPesertaPage() {
     let docIdToDelete = null;
     let localPesertaState = [];
 
-    const showModal = (target) => { if(target){ target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); }};
-    const hideModal = (target) => { if(target){ target.classList.add('opacity-0'); target.querySelector('.modal-content').classList.add('scale-95'); setTimeout(() => target.classList.add('pointer-events-none'), 300); }};
-    
+    const showModal = (target) => {
+        if (target) {
+            target.classList.remove('opacity-0', 'pointer-events-none');
+            target.querySelector('.modal-content').classList.remove('scale-95');
+        }
+    };
+    const hideModal = (target) => {
+        if (target) {
+            target.classList.add('opacity-0');
+            target.querySelector('.modal-content').classList.add('scale-95');
+            setTimeout(() => target.classList.add('pointer-events-none'), 300);
+        }
+    };
+
     document.getElementById('add-peserta-btn')?.addEventListener('click', () => {
         form.reset();
         idInput.value = '';
@@ -274,11 +352,10 @@ function initPesertaPage() {
     });
     document.getElementById('cancel-btn')?.addEventListener('click', () => hideModal(modal));
     document.getElementById('cancel-delete-btn')?.addEventListener('click', () => hideModal(deleteModal));
-    
+
     const invalidateCacheAndReload = () => {
         localStorage.removeItem('pesertaCache');
-        if (skeletonBody) skeletonBody.classList.remove('hidden');
-        if (listBody) listBody.classList.add('hidden');
+        if (listBody) listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Memuat ulang data...</td></tr>`;
         loadPeserta();
     };
 
@@ -302,9 +379,12 @@ function initPesertaPage() {
             localPesertaState.push(optimisticData);
         }
         renderPesertaTable(localPesertaState);
-        
+
         try {
-            const dataToSave = { nama: optimisticData.nama, status_bayar: optimisticData.status_bayar };
+            const dataToSave = {
+                nama: optimisticData.nama,
+                status_bayar: optimisticData.status_bayar
+            };
             if (id) {
                 await updateDoc(doc(db, 'peserta', id), dataToSave);
             } else {
@@ -316,7 +396,7 @@ function initPesertaPage() {
             invalidateCacheAndReload();
         } catch (error) {
             showToast('Gagal menyimpan ke server.', false);
-            renderPesertaTable(originalState);
+            renderPesertaTable(originalState); // Rollback
         }
     });
 
@@ -333,10 +413,10 @@ function initPesertaPage() {
             invalidateCacheAndReload();
         } catch (error) {
             showToast('Gagal menghapus dari server.', false);
-            renderPesertaTable(originalState);
+            renderPesertaTable(originalState); // Rollback
         }
     });
-    
+
     const renderPesertaTable = (pesertaArray) => {
         if (!listBody) return;
         listBody.innerHTML = '';
@@ -366,36 +446,32 @@ function initPesertaPage() {
                     document.getElementById('modal-title').textContent = 'Ubah Data Peserta';
                     showModal(modal);
                 });
-                tr.querySelector('.delete-btn').addEventListener('click', () => { docIdToDelete = peserta.id; showModal(deleteModal); });
+                tr.querySelector('.delete-btn').addEventListener('click', () => {
+                    docIdToDelete = peserta.id;
+                    showModal(deleteModal);
+                });
             });
         }
-        if(skeletonBody) skeletonBody.classList.add('hidden');
-        listBody.classList.remove('hidden');
         lucide.createIcons();
     };
 
     const loadPeserta = async () => {
-        const cachedDataString = localStorage.getItem('pesertaCache');
-        if (cachedDataString) {
-            localPesertaState = JSON.parse(cachedDataString);
-            totalText.textContent = `Total ${localPesertaState.length} anggota aktif.`;
-            renderPesertaTable(localPesertaState);
-        } else {
-            if(skeletonBody) skeletonBody.classList.remove('hidden');
-        }
-
+        listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Memuat data peserta...</td></tr>`;
         try {
             const snap = await getDocs(collection(db, "peserta"));
             const freshData = [];
-            snap.forEach(d => freshData.push({ id: d.id, ...d.data() }));
+            snap.forEach(d => freshData.push({
+                id: d.id,
+                ...d.data()
+            }));
             localPesertaState = freshData;
-            
+
             totalText.textContent = `Total ${localPesertaState.length} anggota aktif.`;
             renderPesertaTable(localPesertaState);
             localStorage.setItem('pesertaCache', JSON.stringify(freshData));
         } catch (error) {
             console.error("Error memuat peserta:", error);
-            if (!cachedDataString) listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data.</td></tr>`;
+            listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data. Silakan refresh halaman.</td></tr>`;
         }
     };
     loadPeserta();
@@ -416,6 +492,7 @@ function initPengaturanPage() {
                 biayaInput.value = data.biaya_per_peserta;
                 tanggalInput.value = data.tanggal_kocokan;
             } else {
+                // Set default values if no settings exist
                 biayaInput.value = 100000;
                 const now = new Date();
                 const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
@@ -424,13 +501,17 @@ function initPengaturanPage() {
                 const day = String(nextMonth.getDate()).padStart(2, '0');
                 tanggalInput.value = `${year}-${month}-${day}`;
             }
-        } catch (error) { showToast("Gagal memuat pengaturan.", false); }
+        } catch (error) {
+            showToast("Gagal memuat pengaturan.", false);
+        }
     };
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         simpanBtn.disabled = true;
-        simpanBtn.textContent = 'Menyimpan...';
+        simpanBtn.innerHTML = '<i data-lucide="loader-circle" class="h-4 w-4 animate-spin"></i><span>Menyimpan...</span>';
+        lucide.createIcons();
+
         const dataToSave = {
             biaya_per_peserta: parseInt(biayaInput.value, 10),
             tanggal_kocokan: tanggalInput.value,
@@ -446,5 +527,6 @@ function initPengaturanPage() {
             lucide.createIcons();
         }
     });
+
     loadPengaturan();
 }
