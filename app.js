@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where, setDoc, getDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // --- KONFIGURASI FIREBASE ---
 const firebaseConfig = {
@@ -106,6 +106,7 @@ function initDashboardPage() {
     const totalPesertaEl = document.getElementById('total-peserta-card');
     const danaTerkumpulEl = document.getElementById('dana-terkumpul-card');
     const tanggalKocokanEl = document.getElementById('tanggal-kocokan-card');
+    const pemenangTerakhirEl = document.getElementById('pemenang-terakhir-card');
     const kocokanBtn = document.getElementById('kocokan-btn');
     const kocokanWarningEl = document.getElementById('kocokan-warning-message');
     const confirmModal = document.getElementById('confirm-kocokan-modal');
@@ -214,28 +215,25 @@ function initDashboardPage() {
             setTimeout(async () => {
                 clearInterval(animationInterval);
                 const pemenang = eligiblePeserta[Math.floor(Math.random() * eligiblePeserta.length)];
-                await updateDoc(doc(db, 'peserta', pemenang.id), {
-                    status_menang: true
+                
+                await updateDoc(doc(db, 'peserta', pemenang.id), { 
+                    status_menang: true,
+                    tanggal_menang: new Date()
                 });
                 localStorage.removeItem('pesertaCache');
 
                 namaAnimasiEl.textContent = pemenang.nama;
                 namaPemenangEl.textContent = pemenang.nama;
-
+                
                 setTimeout(() => {
                     animasiDiv.classList.add('hidden');
                     pemenangDiv.classList.remove('hidden');
                     lucide.createIcons();
-                    if (window.confetti) confetti({
-                        particleCount: 150,
-                        spread: 90,
-                        origin: {
-                            y: 0.6
-                        }
-                    });
+                    if(window.confetti) confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
                 }, 500);
 
                 setKocokanButtonState('enabled');
+                loadDashboardData();
             }, 4500);
 
         } catch (error) {
@@ -255,14 +253,8 @@ function initDashboardPage() {
 
             if (hariIni < tanggalKocokan) {
                 showModal(confirmModal);
-                document.getElementById('cancel-kocokan-btn').onclick = () => {
-                    hideModal(confirmModal);
-                    setKocokanButtonState('enabled');
-                };
-                document.getElementById('proceed-kocokan-btn').onclick = () => {
-                    hideModal(confirmModal);
-                    proceedWithDraw();
-                };
+                document.getElementById('cancel-kocokan-btn').onclick = () => { hideModal(confirmModal); setKocokanButtonState('enabled'); };
+                document.getElementById('proceed-kocokan-btn').onclick = () => { hideModal(confirmModal); proceedWithDraw(); };
             } else {
                 proceedWithDraw();
             }
@@ -272,11 +264,13 @@ function initDashboardPage() {
             setKocokanButtonState('enabled');
         }
     };
-
-    if (kocokanBtn) kocokanBtn.addEventListener('click', handleKocokan);
+    
+    if(kocokanBtn) kocokanBtn.addEventListener('click', handleKocokan);
 
     const loadDashboardData = async () => {
         setKocokanButtonState('loading', 'Memuat data...');
+        if (pemenangTerakhirEl) pemenangTerakhirEl.textContent = 'Memuat...';
+
         try {
             const [pengaturan, pesertaSnap] = await Promise.all([
                 getPengaturan(),
@@ -286,18 +280,10 @@ function initDashboardPage() {
             totalPesertaEl.textContent = `${pesertaSnap.size} Orang`;
             const pesertaLunas = pesertaSnap.docs.filter(doc => doc.data().status_bayar === true).length;
             const totalDana = pesertaLunas * pengaturan.biaya_per_peserta;
-            danaTerkumpulEl.textContent = new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(totalDana);
+            danaTerkumpulEl.textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalDana);
             const tanggal = new Date(pengaturan.tanggal_kocokan + 'T00:00:00');
-            tanggalKocokanEl.textContent = tanggal.toLocaleDateString('id-ID', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            });
-
+            tanggalKocokanEl.textContent = tanggal.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            
             const belumBayarCount = pesertaSnap.size - pesertaLunas;
             if (belumBayarCount > 0) {
                 setKocokanButtonState('disabled', `Ada ${belumBayarCount} peserta belum membayar iuran.`);
@@ -305,15 +291,25 @@ function initDashboardPage() {
                 setKocokanButtonState('enabled');
             }
 
+            const pemenangQuery = query(collection(db, "peserta"), where("status_menang", "==", true), orderBy("tanggal_menang", "desc"), limit(1));
+            const pemenangSnap = await getDocs(pemenangQuery);
+
+            if (!pemenangSnap.empty) {
+                const pemenangTerakhir = pemenangSnap.docs[0].data();
+                pemenangTerakhirEl.textContent = pemenangTerakhir.nama;
+            } else {
+                pemenangTerakhirEl.textContent = '-';
+            }
+
         } catch (error) {
             console.error("Gagal memuat data dashboard:", error);
             totalPesertaEl.textContent = 'Error';
             danaTerkumpulEl.textContent = 'Error';
             tanggalKocokanEl.textContent = 'Error';
+            pemenangTerakhirEl.textContent = 'Error';
             setKocokanButtonState('disabled', 'Gagal memuat data.');
         }
     };
-
     loadDashboardData();
 }
 
