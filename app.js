@@ -304,13 +304,15 @@ function initPesertaPage() {
             startY: 35,
             theme: 'grid',
             headStyles: { fillColor: [41, 51, 61] },
+            columnStyles: {
+                0: { halign: 'center' } // Kolom ke-0 ('No') dibuat rata tengah
+            },
             didDrawPage: function(data) {
                 doc.setFontSize(10);
                 doc.setTextColor(150);
                 const footerText1 = '© 2025 Arisan Keluarga. All Rights Reserved.';
                 doc.text(footerText1, pageWidth / 2, pageHeight - 15, { align: 'center' });
-                const footerText2 = 'Made with ❤️ by Dodi Outright.';
-                doc.text(footerText2, pageWidth / 2, pageHeight - 10, { align: 'center' });
+                
             }
         });
         
