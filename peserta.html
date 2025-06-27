@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Peserta - ArisanPro</title>
+    <title>Daftar Peserta - Arisan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -13,36 +13,26 @@
         .ui-overlay { display: flex; position: fixed; inset: 0; z-index: 50; visibility: hidden; opacity: 0; transition: visibility 0.2s, opacity 0.2s ease-in-out; background-color: rgba(0,0,0,0.6); }
         .ui-overlay.is-open { visibility: visible; opacity: 1; }
         body.overflow-hidden { overflow: hidden; }
-        
-        .responsive-table .table-row { display: block; background-color: white; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; }
-        .responsive-table .row-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; }
-        .responsive-table .row-header-main { display: flex; align-items: center; gap: 0.75rem; }
-        .responsive-table .row-content { display: grid; gap: 0.5rem; }
-        .responsive-table .row-content > div { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; }
-        .responsive-table .row-content > div::before { content: attr(data-label); font-weight: 500; color: #64748b; font-size: 0.875rem; }
-        @media (min-width: 768px) {
-            .responsive-table .table-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 1rem; padding: 1rem; background-color: #f8fafc; font-weight: 500; color: #64748b; text-align: left; }
-            .responsive-table .table-header .text-right { text-align: right; }
-            .responsive-table .table-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 1rem; align-items: center; border-radius: 0; padding: 0 1rem; margin-bottom: 0; box-shadow: none; border: none; border-bottom: 1px solid #e2e8f0; }
-            .responsive-table .table-row:last-child { border-bottom: none; }
-            .responsive-table .row-header { display: contents; }
-            .responsive-table .row-content { display: contents; }
-            .responsive-table .row-content > div { display: flex; padding: 0; }
-            .responsive-table .row-content > div::before { display: none; }
-            .responsive-table .cell-aksi { justify-content: flex-end; }
-        }
     </style>
 </head>
 <body class="bg-slate-50">
 
 <header class="sticky top-0 z-30 lg:hidden flex items-center justify-between px-4 h-16 bg-white border-b border-slate-200">
-    <a href="index.html" class="font-bold text-lg">Daftar Peserta</a>
+     <a href="index.html" class="font-bold text-lg flex items-center gap-2">
+        <i data-lucide="hand-coins" class="h-6 w-6 text-slate-800"></i> Arisan
+    </a>
     <button id="mobile-menu-btn" class="p-2"><i data-lucide="menu"></i></button>
 </header>
 
 <div class="flex">
     <aside id="sidebar" class="fixed top-0 z-40 lg:sticky h-screen w-64 bg-white border-r border-slate-200 p-6 flex flex-col -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
-        <div class="flex items-center justify-between mb-8"><h3 class="font-bold text-xl">ArisanPro</h3><button id="close-sidebar-btn" class="p-2 lg:hidden"><i data-lucide="x"></i></button></div>
+        <div class="flex items-center justify-between mb-8">
+            <a href="index.html" class="flex items-center gap-2">
+                <i data-lucide="hand-coins" class="h-7 w-7 text-slate-800"></i>
+                <h3 class="font-bold text-xl">Arisan</h3>
+            </a>
+            <button id="close-sidebar-btn" class="p-2 lg:hidden"><i data-lucide="x"></i></button>
+        </div>
         <nav class="flex-1 flex flex-col space-y-2 text-sm text-slate-600">
             <a href="index.html" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 hover:text-slate-900"><i data-lucide="layout-dashboard" class="h-4 w-4"></i> Dashboard</a>
             <a href="peserta.html" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-md bg-slate-100 text-slate-900 font-medium"><i data-lucide="users" class="h-4 w-4"></i> Peserta</a>
@@ -58,11 +48,13 @@
                 <div><h1 class="text-3xl font-bold text-slate-900">Daftar Peserta</h1><p class="text-slate-500 mt-1">Kelola semua peserta arisan di sini.</p></div>
                 <button data-ui-target="dialog-tambah-peserta" class="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium h-11 px-6 py-2 bg-slate-900 text-white hover:bg-slate-800 shadow-sm"><i data-lucide="user-plus" class="h-5 w-5"></i><span>Tambah Peserta</span></button>
             </div>
-            <div class="bg-white md:bg-transparent rounded-xl md:border-none md:shadow-none p-2 md:p-0">
-                <div class="responsive-table mt-4">
-                    <div class="table-header hidden md:grid"><div>Nama Peserta</div><div>Status Iuran</div><div>Keterangan</div><div class="text-right">Aksi</div></div>
-                    <div id="tabel-peserta-body" class="md:contents">
-                        </div>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+                <div class="w-full overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50"><tr class="text-left text-slate-600 font-medium"><th class="p-4">Nama Peserta</th><th class="p-4">Status Iuran</th><th class="p-4">Keterangan</th><th class="p-4 text-right">Aksi</th></tr></thead>
+                        <tbody id="tabel-peserta-body" class="divide-y divide-slate-200">
+                            </tbody>
+                    </table>
                 </div>
             </div>
             <footer class="mt-12 pt-8 border-t border-slate-200 text-center text-sm text-slate-500"><p>© 2025 Arisan. All Rights Reserved.</p><p class="mt-1">Made with ❤️ by Dodi Outright.</p></footer>
@@ -74,26 +66,17 @@
 <div id="dialog-edit-peserta" class="ui-overlay items-center justify-center p-4"><div class="fixed inset-0" data-ui-close></div><div class="ui-content relative w-full max-w-lg mx-auto bg-white p-6 shadow-lg rounded-lg"><div class="flex items-start justify-between"><h2 class="text-lg font-semibold">Edit Nama Peserta</h2><button data-ui-close class="p-1 -mt-1 -mr-1 rounded-full hover:bg-slate-100"><i data-lucide="x" class="h-5 w-5 text-slate-500"></i></button></div><div class="mt-6 space-y-2"><label for="nama-peserta-edit" class="text-sm font-medium text-slate-700">Nama Lengkap</label><input id="nama-peserta-edit" class="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm"></div><div class="mt-6 flex justify-end"><button id="btn-konfirmasi-edit" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800">Simpan Perubahan</button></div></div></div>
 <div id="dialog-konfirmasi-hapus" class="ui-overlay items-center justify-center p-4"><div class="fixed inset-0" data-ui-close></div><div class="ui-content relative w-full max-w-md mx-auto bg-white p-6 shadow-lg sm:rounded-lg"><h2 class="text-lg font-semibold">Apakah Anda Yakin?</h2><p class="text-sm text-slate-500 mt-2">Tindakan ini akan menghapus peserta <strong id="nama-peserta-hapus" class="text-slate-900"></strong> secara permanen.</p><div class="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2"><button data-ui-close class="mt-2 sm:mt-0 inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-100">Batal</button><button id="btn-konfirmasi-hapus" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-red-600 text-white hover:bg-red-700">Ya, Hapus</button></div></div></div>
 <div id="dialog-ubah-status" class="ui-overlay items-center justify-center p-4"><div class="fixed inset-0" data-ui-close></div><div class="ui-content relative w-full max-w-md mx-auto bg-white p-6 shadow-lg sm:rounded-lg"><h2 class="text-lg font-semibold">Konfirmasi Ubah Status</h2><p class="text-sm text-slate-500 mt-2">Ubah status iuran untuk peserta <strong id="nama-peserta-status" class="text-slate-900"></strong>?</p><div class="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2"><button data-ui-close class="mt-2 sm:mt-0 inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-100">Batal</button><button id="btn-konfirmasi-ubah-status" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800">Simpan Perubahan</button></div></div></div>
-<div id="dialog-pemenang" class="ui-overlay items-center justify-center p-4"><div class="fixed inset-0" data-ui-close></div><div class="ui-content relative w-full max-w-md mx-auto bg-white p-8 shadow-lg sm:rounded-lg text-center"><i data-lucide="party-popper" class="mx-auto h-16 w-16 text-yellow-500"></i><h2 class="text-3xl font-bold text-slate-900 mt-4">Selamat!</h2><p class="text-slate-500 mt-2">Pemenang arisan periode ini adalah:</p><p id="nama-pemenang-display" class="my-4 text-2xl font-bold bg-yellow-100 text-yellow-800 rounded-lg py-2 px-4 inline-block"></p><div class="mt-6"><button id="btn-tutup-pemenang" class="w-full inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800">Tutup</button></div></div></div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // === STATE MANAGEMENT & LOCAL STORAGE ===
-    let participants = []; // Data utama aplikasi kita
+    // === STATE & LOCAL STORAGE ===
+    let participants = [];
     const PARTICIPANTS_STORAGE_KEY = 'arisan_participants_data';
-
-    // Fungsi untuk menyimpan data ke localStorage
-    const saveParticipants = () => {
-        localStorage.setItem(PARTICIPANTS_STORAGE_KEY, JSON.stringify(participants));
-    };
-
-    // Fungsi untuk memuat data dari localStorage
+    const saveParticipants = () => localStorage.setItem(PARTICIPANTS_STORAGE_KEY, JSON.stringify(participants));
     const loadParticipants = () => {
         const data = localStorage.getItem(PARTICIPANTS_STORAGE_KEY);
-        if (data) {
-            participants = JSON.parse(data);
-        } else {
-            // Jika tidak ada data, buat data contoh
+        if (data) participants = JSON.parse(data);
+        else {
             participants = [
                 { id: Date.now(), name: "Budi Utomo", paymentStatus: "Lunas", hasWon: false },
                 { id: Date.now() + 1, name: "Siti Perwita", paymentStatus: "Lunas", hasWon: true }
@@ -103,164 +86,95 @@ document.addEventListener('DOMContentLoaded', function () {
     };
     
     // === UI & DOM ELEMENTS ===
-    const tabelBody = document.getElementById('tabel-peserta-body');
-    const modalTambah = document.getElementById('dialog-tambah-peserta'), modalEdit = document.getElementById('dialog-edit-peserta'), modalHapus = document.getElementById('dialog-konfirmasi-hapus'), modalStatus = document.getElementById('dialog-ubah-status'), modalPemenang = document.getElementById('dialog-pemenang');
-    const btnSimpanPeserta = document.getElementById('btn-simpan-peserta'), btnKonfirmasiHapus = document.getElementById('btn-konfirmasi-hapus'), btnKonfirmasiUbahStatus = document.getElementById('btn-konfirmasi-ubah-status'), btnKonfirmasiEdit = document.getElementById('btn-konfirmasi-edit'), btnTutupPemenang = document.getElementById('btn-tutup-pemenang');
+    let activePopperInstance = null, participantIdToInteract = null;
+    const tabelBody = document.getElementById('tabel-peserta-body'), modalTambah = document.getElementById('dialog-tambah-peserta'), modalEdit = document.getElementById('dialog-edit-peserta'), modalHapus = document.getElementById('dialog-konfirmasi-hapus'), modalStatus = document.getElementById('dialog-ubah-status');
+    const btnSimpanPeserta = document.getElementById('btn-simpan-peserta'), btnKonfirmasiHapus = document.getElementById('btn-konfirmasi-hapus'), btnKonfirmasiUbahStatus = document.getElementById('btn-konfirmasi-ubah-status'), btnKonfirmasiEdit = document.getElementById('btn-konfirmasi-edit');
     
-    let activePopperInstance = null;
-    let participantIdToInteract = null; // Menyimpan ID peserta untuk diedit/dihapus/diubah
-
-    // === RENDER FUNCTION ===
+    // === RENDER FUNCTION (KEMBALI KE FORMAT TABEL) ===
     const renderTable = () => {
-        tabelBody.innerHTML = ''; // Kosongkan tabel sebelum render
+        tabelBody.innerHTML = '';
         if (participants.length === 0) {
-            tabelBody.innerHTML = `<div class="p-8 text-center text-slate-500">Belum ada peserta.</div>`;
+            tabelBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500">Belum ada peserta.</td></tr>`;
             return;
         }
-
         participants.forEach(p => {
             const initials = p.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
             const statusClass = p.paymentStatus === 'Lunas' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
-            const winnerBadge = p.hasWon ? `<span class="pemenang-badge ml-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800"><i data-lucide="trophy" class="h-3 w-3"></i>Menang</span>` : '';
-
+            const winnerBadge = p.hasWon ? `<span class="pemenang-badge inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800"><i data-lucide="trophy" class="h-3 w-3"></i>Menang</span>` : '';
             const rowHTML = `
-                <div class="table-row" data-id="${p.id}">
-                    <div class="row-header">
-                        <div class="row-header-main">
-                            <span class="avatar-initials flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-sm font-medium text-slate-600">${initials}</span>
-                            <div class="flex items-center gap-2">
-                                <span class="nama-peserta font-medium text-slate-800">${p.name}</span>
-                                ${winnerBadge}
-                            </div>
+                <tr data-id="${p.id}">
+                    <td class="p-4 align-middle"><div class="flex items-center gap-3"><span class="flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-sm font-medium text-slate-600">${initials}</span><span class="nama-peserta font-medium text-slate-800">${p.name}</span></div></td>
+                    <td class="p-4 align-middle"><span class="status-iuran cursor-pointer inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusClass}">${p.paymentStatus}</span></td>
+                    <td class="keterangan-cell p-4 align-middle">${winnerBadge}</td>
+                    <td class="p-4 align-middle text-right">
+                        <div class="relative inline-block text-left">
+                            <button class="btn-aksi-trigger p-2 hover:bg-slate-100 rounded-full"><i data-lucide="more-horizontal" class="h-4 w-4 pointer-events-none"></i></button>
+                            <div class="dropdown-aksi hidden absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10"><div class="py-1"><a href="#" class="btn-edit-peserta text-slate-700 flex items-center gap-3 px-4 py-2 text-sm hover:bg-slate-100"><i data-lucide="pencil" class="h-4 w-4 pointer-events-none"></i><span>Edit</span></a><a href="#" class="btn-hapus-peserta text-red-600 flex items-center gap-3 px-4 py-2 text-sm hover:bg-slate-100"><i data-lucide="trash-2" class="h-4 w-4 pointer-events-none"></i><span>Hapus</span></a></div></div>
                         </div>
-                    </div>
-                    <div class="row-content">
-                        <div data-label="Status Iuran"><span class="status-iuran cursor-pointer inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusClass}">${p.paymentStatus}</span></div>
-                        <div data-label="Aksi" class="cell-aksi">
-                            <div class="relative inline-block text-left">
-                                <button class="btn-aksi-trigger p-2 hover:bg-slate-100 rounded-full"><i data-lucide="more-horizontal" class="h-4 w-4 pointer-events-none"></i></button>
-                                <div class="dropdown-aksi hidden absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
-                                    <div class="py-1">
-                                        <a href="#" class="btn-edit-peserta text-slate-700 flex items-center gap-3 px-4 py-2 text-sm hover:bg-slate-100"><i data-lucide="pencil" class="h-4 w-4 pointer-events-none"></i><span>Edit</span></a>
-                                        <a href="#" class="btn-hapus-peserta text-red-600 flex items-center gap-3 px-4 py-2 text-sm hover:bg-slate-100"><i data-lucide="trash-2" class="h-4 w-4 pointer-events-none"></i><span>Hapus</span></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
+                    </td>
+                </tr>`;
             tabelBody.insertAdjacentHTML('beforeend', rowHTML);
         });
         lucide.createIcons();
     };
 
-    // === EVENT LISTENERS & LOGIC ===
+    // === UNIVERSAL FUNCTIONS & LISTENERS ===
+    const bukaModal = (el) => { document.body.classList.add('overflow-hidden'); el.classList.add('is-open'); };
+    const tutupModal = (el) => { document.body.classList.remove('overflow-hidden'); el.classList.remove('is-open'); };
+    const closeAllDropdowns = () => { if (activePopperInstance) { activePopperInstance.destroy(); activePopperInstance = null; } document.querySelectorAll('.dropdown-aksi').forEach(d => d.classList.add('hidden')); };
+    
+    document.querySelectorAll('[data-ui-target]').forEach(b => b.addEventListener('click', () => bukaModal(document.getElementById(b.dataset.uiTarget))));
+    document.querySelectorAll('[data-ui-close]').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); tutupModal(b.closest('.ui-overlay')); }));
+    window.addEventListener('click', e => { if (!e.target.closest('.btn-aksi-trigger')) closeAllDropdowns(); });
 
-    // -- Tambah Peserta --
-    btnSimpanPeserta.addEventListener('click', function() {
-        const namaInput = document.getElementById('nama-peserta-tambah');
-        const nama = namaInput.value.trim();
-        if (nama === '') return;
-        
-        const newParticipant = {
-            id: Date.now(),
-            name: nama,
-            paymentStatus: 'Menunggu',
-            hasWon: false
-        };
-        participants.push(newParticipant);
-        saveParticipants();
-        renderTable();
+    // === SIDEBAR LOGIC ===
+    const sidebar = document.getElementById('sidebar'), mobileMenuBtn = document.getElementById('mobile-menu-btn'), closeSidebarBtn = document.getElementById('close-sidebar-btn'), sidebarLinks = document.querySelectorAll('.sidebar-link');
+    if(sidebar && mobileMenuBtn && closeSidebarBtn){
+        const openSidebar = () => sidebar.classList.remove('-translate-x-full');
+        const closeSidebar = () => sidebar.classList.add('-translate-x-full');
+        mobileMenuBtn.addEventListener('click', openSidebar);
+        closeSidebarBtn.addEventListener('click', closeSidebar);
+        sidebarLinks.forEach(link => link.addEventListener('click', () => { if(window.innerWidth < 1024) closeSidebar() }));
+    }
 
-        namaInput.value = '';
-        tutupModal(modalTambah);
+    // === ACTION HANDLERS ===
+    btnSimpanPeserta.addEventListener('click', () => {
+        const namaInput = document.getElementById('nama-peserta-tambah'); const nama = namaInput.value.trim(); if(nama){
+        participants.push({ id: Date.now(), name: nama, paymentStatus: 'Menunggu', hasWon: false });
+        saveParticipants(); renderTable(); namaInput.value = ''; tutupModal(modalTambah); }
     });
-
-    // -- Aksi di Tabel (Edit, Hapus, Ubah Status, Dropdown) --
-    tabelBody.addEventListener('click', function(e) {
-        const rowElement = e.target.closest('.table-row');
-        if (!rowElement) return;
+    
+    tabelBody.addEventListener('click', e => {
+        const row = e.target.closest('tr'); if (!row) return;
+        const id = Number(row.dataset.id); const p = participants.find(p => p.id === id); if(!p) return;
         
-        const id = Number(rowElement.dataset.id);
-        const participant = participants.find(p => p.id === id);
-        
-        // Dropdown Menu
         const trigger = e.target.closest('.btn-aksi-trigger');
         if (trigger) {
             e.stopPropagation();
-            // ... (logika popper sama seperti sebelumnya) ...
+            const dropdown = trigger.nextElementSibling; const isHidden = dropdown.classList.contains('hidden');
+            closeAllDropdowns();
+            if (isHidden) {
+                dropdown.classList.remove('hidden');
+                activePopperInstance = Popper.createPopper(trigger, dropdown, { placement: 'bottom-end', strategy: 'fixed', modifiers: [{ name: 'offset', options: { offset: [0, 8] } }], });
+            }
             return;
         }
-
-        // Tombol Edit
-        if (e.target.closest('.btn-edit-peserta')) {
-            participantIdToInteract = id;
-            document.getElementById('nama-peserta-edit').value = participant.name;
-            bukaModal(modalEdit);
-        }
-        // Tombol Hapus
-        else if (e.target.closest('.btn-hapus-peserta')) {
-            participantIdToInteract = id;
-            document.getElementById('nama-peserta-hapus').textContent = participant.name;
-            bukaModal(modalHapus);
-        }
-        // Badge Status
-        else if (e.target.closest('.status-iuran')) {
-            participantIdToInteract = id;
-            document.getElementById('nama-peserta-status').textContent = participant.name;
-            bukaModal(modalStatus);
-        }
+        
+        if (e.target.closest('.btn-edit-peserta')) { participantIdToInteract = id; document.getElementById('nama-peserta-edit').value = p.name; bukaModal(modalEdit); }
+        else if (e.target.closest('.btn-hapus-peserta')) { participantIdToInteract = id; document.getElementById('nama-peserta-hapus').textContent = p.name; bukaModal(modalHapus); }
+        else if (e.target.closest('.status-iuran')) { participantIdToInteract = id; document.getElementById('nama-peserta-status').textContent = p.name; bukaModal(modalStatus); }
         closeAllDropdowns();
     });
 
-    // -- Tombol Konfirmasi di Modal --
-    btnKonfirmasiEdit.addEventListener('click', function() {
-        const newName = document.getElementById('nama-peserta-edit').value.trim();
-        if (newName && participantIdToInteract) {
-            const index = participants.findIndex(p => p.id === participantIdToInteract);
-            if (index !== -1) participants[index].name = newName;
-            saveParticipants();
-            renderTable();
-        }
-        tutupModal(modalEdit);
-    });
-
-    btnKonfirmasiHapus.addEventListener('click', function() {
-        if (participantIdToInteract) {
-            participants = participants.filter(p => p.id !== participantIdToInteract);
-            saveParticipants();
-            renderTable();
-        }
-        tutupModal(modalHapus);
-    });
-
-    btnKonfirmasiUbahStatus.addEventListener('click', function() {
-        if (participantIdToInteract) {
-            const index = participants.findIndex(p => p.id === participantIdToInteract);
-            if (index !== -1) {
-                participants[index].paymentStatus = participants[index].paymentStatus === 'Lunas' ? 'Menunggu' : 'Lunas';
-            }
-            saveParticipants();
-            renderTable();
-        }
-        tutupModal(modalStatus);
-    });
-
-    // -- Logika Lainnya (Sidebar, Kocokan, dll) --
-    // ... (Semua logika lain seperti kocokan, tutup pemenang, sidebar, dll tetap sama,
-    //      namun harus disesuaikan untuk mengubah state `participants` lalu memanggil `saveParticipants()` dan `renderTable()`)
+    btnKonfirmasiEdit.addEventListener('click', () => { const newName = document.getElementById('nama-peserta-edit').value.trim(); if (newName && participantIdToInteract) { const i = participants.findIndex(p => p.id === participantIdToInteract); if(i!==-1) participants[i].name = newName; saveParticipants(); renderTable(); } tutupModal(modalEdit); });
+    btnKonfirmasiHapus.addEventListener('click', () => { if (participantIdToInteract) { participants = participants.filter(p => p.id !== participantIdToInteract); saveParticipants(); renderTable(); } tutupModal(modalHapus); });
+    btnKonfirmasiUbahStatus.addEventListener('click', () => { if (participantIdToInteract) { const i = participants.findIndex(p => p.id === participantIdToInteract); if(i!==-1) participants[i].paymentStatus = participants[i].paymentStatus === 'Lunas' ? 'Menunggu' : 'Lunas'; saveParticipants(); renderTable(); } tutupModal(modalStatus); });
     
-    // Inisialisasi Aplikasi
-    const init = () => {
-        loadParticipants();
-        renderTable();
-        lucide.createIcons();
-    };
-
-    init();
+    // === INIT APP ===
+    loadParticipants();
+    renderTable();
 });
 </script>
-
 
 </body>
 </html>
