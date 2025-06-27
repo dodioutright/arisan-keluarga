@@ -16,14 +16,13 @@ import {
 // --- KONFIGURASI FIREBASE ---
 // TODO: Ganti dengan konfigurasi Firebase proyekmu!
 const firebaseConfig = {
-    apiKey: "AIzaSyAWOaZVoiyloMY-UUJHeccEKR9CWYc-d7w",
-    authDomain: "arisan-keluarga1.firebaseapp.com",
-    projectId: "arisan-keluarga1",
-    storageBucket: "arisan-keluarga1.firebasestorage.app",
-    messagingSenderId: "345958108395",
-    appId: "1:345958108395:web:700efa4296a8c2857142ae",
-    measurementId: "G-W3G810D7YL"
-  };
+    apiKey: "AIzaSy...YOUR_API_KEY",
+    authDomain: "your-project-id.firebaseapp.com",
+    projectId: "your-project-id",
+    storageBucket: "your-project-id.appspot.com",
+    messagingSenderId: "your-sender-id",
+    appId: "1:your-app-id:web:your-web-app-id"
+};
 
 // Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
@@ -85,25 +84,34 @@ if (currentPage === 'index.html' || currentPage === '') {
 
 // --- LOGIKA HALAMAN DASHBOARD ---
 function initDashboard(user) {
+    // --- Elemen Navigasi ---
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
     const userEmailElement = document.getElementById('user-email');
-    const logoutButton = document.getElementById('logout-button');
-    const pesertaListElement = document.getElementById('peserta-list');
-    const totalPesertaElement = document.getElementById('total-peserta');
+    const logoutButtonDesktop = document.getElementById('logout-button-desktop');
+    const logoutButtonMobile = document.getElementById('logout-button-mobile');
     
+    // --- Elemen Konten ---
+    const pesertaListElement = document.getElementById('peserta-list');
+    const totalPesertaCard = document.getElementById('total-peserta-card');
+    
+    // --- Logika Menu Mobile ---
+    if(mobileMenuButton && mobileMenu) {
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    }
+
     // Tampilkan email pengguna
     if(userEmailElement) userEmailElement.textContent = user.email;
 
     // Fungsi Logout
-    if(logoutButton) {
-        logoutButton.addEventListener('click', () => {
-            signOut(auth).then(() => {
-                console.log("Logout berhasil.");
-                // onAuthStateChanged akan menangani redirect
-            }).catch((error) => {
-                console.error("Error logout:", error);
-            });
-        });
-    }
+    const handleLogout = () => {
+        signOut(auth).catch((error) => console.error("Error logout:", error));
+    };
+
+    if (logoutButtonDesktop) logoutButtonDesktop.addEventListener('click', handleLogout);
+    if (logoutButtonMobile) logoutButtonMobile.addEventListener('click', handleLogout);
 
     // Fungsi untuk memuat data peserta dari Firestore
     async function loadPeserta() {
@@ -112,12 +120,11 @@ function initDashboard(user) {
         try {
             const querySnapshot = await getDocs(collection(db, "peserta"));
             
-            // Kosongkan tabel sebelum diisi
             pesertaListElement.innerHTML = ''; 
             
             if (querySnapshot.empty) {
                 pesertaListElement.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">Belum ada data peserta.</td></tr>`;
-                totalPesertaElement.textContent = 0;
+                if(totalPesertaCard) totalPesertaCard.textContent = '0 Orang';
                 return;
             }
 
@@ -141,7 +148,8 @@ function initDashboard(user) {
                 pesertaListElement.innerHTML += row;
             });
             
-            if(totalPesertaElement) totalPesertaElement.textContent = querySnapshot.size;
+            // Update kartu total peserta
+            if(totalPesertaCard) totalPesertaCard.textContent = `${querySnapshot.size} Orang`;
 
         } catch (error) {
             console.error("Error memuat data peserta: ", error);
