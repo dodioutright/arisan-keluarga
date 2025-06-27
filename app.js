@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where, setDoc, getDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where, setDoc, getDoc, orderBy, limit, writeBatch, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // --- KONFIGURASI FIREBASE ---
 const firebaseConfig = {
@@ -241,6 +241,7 @@ function initPesertaPage() {
     const searchInput = document.getElementById('search-input');
     const filterSelect = document.getElementById('filter-select');
     const resetBtn = document.getElementById('reset-filter-btn');
+    const exportPdfBtn = document.getElementById('export-pdf-btn');
 
     let docIdToDelete = null;
     let localPesertaState = [];
@@ -275,6 +276,61 @@ function initPesertaPage() {
         hideModal(deleteModal);
         try { await deleteDoc(doc(db, 'peserta', docIdToDelete)); showToast('Peserta berhasil dihapus!'); invalidateCacheAndReload(); } 
         catch (error) { showToast('Gagal menghapus dari server.', false); }
+    });
+    
+    exportPdfBtn?.addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        const tableHead = [['No', 'Nama Peserta', 'Status Bayar', 'Status Menang']];
+        const tableBody = filteredPesertaState.map((peserta, index) => [
+            index + 1,
+            peserta.nama,
+            peserta.status_bayar ? 'Lunas' : 'Belum Bayar',
+            peserta.status_menang ? 'Ya' : 'Belum'
+        ]);
+
+        const pageHeight = doc.internal.pageSize.height;
+        const pageWidth = doc.internal.pageSize.width;
+
+        doc.setFontSize(18);
+        doc.text('Laporan Arisan Keluarga', pageWidth / 2, 22, { align: 'center' });
+        doc.setLineWidth(0.5);
+        doc.line(14, 25, pageWidth - 14, 25);
+
+        doc.autoTable({
+            head: tableHead,
+            body: tableBody,
+            startY: 35,
+            theme: 'grid',
+            headStyles: { fillColor: [41, 51, 61] },
+            didDrawPage: function(data) {
+                doc.setFontSize(10);
+                doc.setTextColor(150);
+                const footerText1 = '© 2025 Arisan Keluarga. All Rights Reserved.';
+                doc.text(footerText1, pageWidth / 2, pageHeight - 15, { align: 'center' });
+                const footerText2 = 'Made with ❤️ by Dodi Outright.';
+                doc.text(footerText2, pageWidth / 2, pageHeight - 10, { align: 'center' });
+            }
+        });
+        
+        const pdfOutput = doc.output('blob');
+        const pdfFile = new File([pdfOutput], 'Laporan Arisan Keluarga.pdf', { type: 'application/pdf' });
+
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+            navigator.share({
+                title: 'Laporan Arisan Keluarga',
+                text: 'Berikut adalah laporan peserta Arisan Keluarga.',
+                files: [pdfFile]
+            }).catch(err => {
+                if (err.name !== 'AbortError') {
+                    console.error('Gagal membagikan:', err);
+                    doc.save('Laporan Arisan Keluarga.pdf');
+                }
+            });
+        } else {
+            doc.save('Laporan Arisan Keluarga.pdf');
+        }
     });
 
     const applyFiltersAndRender = () => {
@@ -388,11 +444,11 @@ function initRiwayatPage() {
             
             if (querySnapshot.empty) {
                 listBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">Belum ada pemenang.</td></tr>`;
-                totalPemenangText.textContent = 'Total 0 pemenang.';
+                if(totalPemenangText) totalPemenangText.textContent = 'Total 0 pemenang.';
                 return;
             }
 
-            totalPemenangText.textContent = `Total ${querySnapshot.size} pemenang tercatat.`;
+            if(totalPemenangText) totalPemenangText.textContent = `Total ${querySnapshot.size} pemenang tercatat.`;
             querySnapshot.forEach((doc, index) => {
                 const data = doc.data();
                 const tr = listBody.insertRow();
@@ -424,6 +480,13 @@ function initPengaturanPage() {
     const tanggalInput = document.getElementById('tanggal_kocokan');
     const simpanBtn = document.getElementById('simpan-btn');
     const pengaturanRef = doc(db, "pengaturan", "umum");
+    const resetBtn = document.getElementById('reset-arisan-btn');
+    const resetModal = document.getElementById('reset-confirm-modal');
+    const cancelResetBtn = document.getElementById('cancel-reset-btn');
+    const confirmResetBtn = document.getElementById('confirm-reset-btn');
+    
+    const showModal = (target) => { if (target) { target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); } };
+    const hideModal = (target) => { if (target) { target.classList.add('opacity-0'); target.querySelector('.modal-content').classList.add('scale-95'); setTimeout(() => target.classList.add('pointer-events-none'), 300); } };
 
     const loadPengaturan = async () => {
         try {
@@ -444,12 +507,11 @@ function initPengaturanPage() {
         } catch (error) { showToast("Gagal memuat pengaturan.", false); }
     };
 
-    form.addEventListener('submit', async (e) => {
+    form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         simpanBtn.disabled = true;
         simpanBtn.innerHTML = '<i data-lucide="loader-circle" class="h-4 w-4 animate-spin"></i><span>Menyimpan...</span>';
         lucide.createIcons();
-
         const dataToSave = {
             biaya_per_peserta: parseInt(biayaInput.value, 10),
             tanggal_kocokan: tanggalInput.value,
@@ -462,6 +524,37 @@ function initPengaturanPage() {
             simpanBtn.disabled = false;
             simpanBtn.innerHTML = '<i data-lucide="save" class="h-4 w-4"></i><span>Simpan Pengaturan</span>';
             lucide.createIcons();
+        }
+    });
+
+    resetBtn?.addEventListener('click', () => showModal(resetModal));
+    cancelResetBtn?.addEventListener('click', () => hideModal(resetModal));
+
+    confirmResetBtn?.addEventListener('click', async () => {
+        confirmResetBtn.disabled = true;
+        confirmResetBtn.textContent = 'Memproses...';
+        try {
+            const pesertaRef = collection(db, "peserta");
+            const snapshot = await getDocs(pesertaRef);
+            const batch = writeBatch(db);
+            snapshot.docs.forEach(doc => {
+                const docRef = doc.ref;
+                batch.update(docRef, {
+                    status_bayar: false,
+                    status_menang: false,
+                    tanggal_menang: deleteField()
+                });
+            });
+            await batch.commit();
+            localStorage.removeItem('pesertaCache');
+            hideModal(resetModal);
+            showToast('Siklus arisan berhasil direset!');
+        } catch (error) {
+            console.error("Error mereset siklus:", error);
+            showToast('Gagal mereset siklus.', false);
+        } finally {
+            confirmResetBtn.disabled = false;
+            confirmResetBtn.textContent = 'Ya, Reset Sekarang';
         }
     });
 
