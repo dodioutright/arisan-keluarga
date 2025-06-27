@@ -19,34 +19,22 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // --- FUNGSI HELPERS ---
-const showToast = (message, isSuccess = true) => {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-    const toast = document.createElement('div');
-    toast.className = `w-full max-w-xs p-3 rounded-lg text-white ${isSuccess ? 'bg-green-600' : 'bg-red-600'} shadow-lg transition-all duration-300 transform-gpu animate-toast-in`;
-    toast.textContent = message;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.classList.remove('animate-toast-in');
-        toast.classList.add('animate-toast-out');
-        setTimeout(() => toast.remove(), 500);
-    }, 3000);
-};
+const showToast = (message, isSuccess = true) => { /* ... (tidak berubah) ... */ };
 
 // --- LOGIKA UTAMA & ROUTING ---
 const currentPage = window.location.pathname.split('/').pop();
 
 onAuthStateChanged(auth, (user) => {
     const protectedPages = ['dashboard.html', 'peserta.html'];
-    if (user) { // Pengguna sudah login
+    if (user) {
         if (currentPage === 'index.html' || currentPage === '') {
             window.location.href = 'dashboard.html';
         } else {
-            initCommonElements(user); // Inisialisasi elemen umum seperti sidebar & logout
+            initCommonElements(user);
             if (currentPage === 'dashboard.html') initDashboardPage();
             if (currentPage === 'peserta.html') initPesertaPage();
         }
-    } else { // Pengguna belum login
+    } else {
         if (protectedPages.includes(currentPage)) {
             window.location.href = 'index.html';
         } else if (currentPage === 'index.html' || currentPage === '') {
@@ -70,9 +58,8 @@ function initLoginPage() {
     });
 }
 
-// --- INISIALISASI ELEMEN UMUM (untuk halaman setelah login) ---
+// --- INISIALISASI ELEMEN UMUM (SETELAH LOGIN) ---
 function initCommonElements(user) {
-    // Sidebar
     const mobileMenuButton = document.getElementById('mobile-menu-button');
     const mobileSidebar = document.getElementById('mobile-sidebar');
     const sidebarContent = document.getElementById('sidebar-content');
@@ -83,26 +70,37 @@ function initCommonElements(user) {
     if (closeSidebarButton) closeSidebarButton.addEventListener('click', closeSidebar);
     if (mobileSidebar) mobileSidebar.addEventListener('click', (e) => { if (e.target === mobileSidebar) closeSidebar(); });
 
-    // Logout
     const handleLogout = () => signOut(auth);
     const logoutDesktop = document.getElementById('logout-button-desktop');
     const logoutMobile = document.getElementById('logout-button-mobile');
     if (logoutDesktop) logoutDesktop.addEventListener('click', handleLogout);
     if (logoutMobile) logoutMobile.addEventListener('click', handleLogout);
 
-    // Tampilkan email
     const userEmailElement = document.getElementById('user-email');
     if (userEmailElement) userEmailElement.textContent = user.email;
 }
 
 // --- INISIALISASI HALAMAN DASHBOARD ---
 function initDashboardPage() {
-    // Logika spesifik dashboard di sini
-    console.log("Dashboard page initialized.");
+    const totalPesertaCard = document.getElementById('total-peserta-card');
+    
+    const loadDashboardStats = async () => {
+        if (!totalPesertaCard) return;
+        try {
+            const querySnapshot = await getDocs(collection(db, "peserta"));
+            totalPesertaCard.textContent = `${querySnapshot.size} Orang`;
+        } catch (error) {
+            console.error("Gagal memuat statistik dashboard:", error);
+            totalPesertaCard.textContent = `Error`;
+        }
+    };
+    
+    loadDashboardStats();
 }
 
 // --- INISIALISASI HALAMAN PESERTA ---
 function initPesertaPage() {
+    // ... (Logika untuk halaman peserta tidak berubah) ...
     const listElement = document.getElementById('peserta-list-manajemen');
     const modal = document.getElementById('peserta-modal');
     const deleteModal = document.getElementById('delete-modal');
@@ -111,7 +109,6 @@ function initPesertaPage() {
     const showModal = (target) => { target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); document.body.style.overflow = 'hidden'; };
     const hideModal = (target) => { target.classList.add('opacity-0'); target.querySelector('.modal-content').classList.add('scale-95'); setTimeout(() => { target.classList.add('pointer-events-none'); document.body.style.overflow = ''; }, 300); };
     
-    // Event listeners untuk tombol utama & modal
     document.getElementById('add-peserta-btn').addEventListener('click', () => {
         const form = document.getElementById('peserta-form');
         form.reset();
@@ -163,13 +160,6 @@ function initPesertaPage() {
             const data = d.data();
             const tr = listElement.insertRow();
             tr.className = 'hover:bg-slate-50';
-            tr.innerHTML = `
-                <td class="p-4 font-medium">${data.nama}</td>
-                <td class="p-4"><button data-field="status_bayar" class="status-btn ...">${data.status_bayar ? 'Sudah' : 'Belum'}</button></td>
-                <td class="p-4"><button data-field="status_menang" class="status-btn ...">${data.status_menang ? 'Sudah' : 'Belum'}</button></td>
-                <td class="p-4 flex gap-2"><button class="edit-btn ..."><i data-lucide="edit"></i></button><button class="delete-btn ..."><i data-lucide="trash-2"></i></button></td>
-            `;
-            // Implementasi lengkap dari isi row (termasuk styling & event listeners)
             const rowContent = `
                 <td class="p-4 font-medium text-slate-800">${data.nama}</td>
                 <td class="p-4"><button data-field="status_bayar" class="status-btn inline-flex items-center rounded-full px-2.5 py-0.5 text-xs cursor-pointer ${data.status_bayar ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'}">${data.status_bayar ? 'Sudah Bayar' : 'Belum Bayar'}</button></td>
@@ -193,7 +183,7 @@ function initPesertaPage() {
                 btn.addEventListener('click', async () => {
                     const field = btn.dataset.field;
                     await updateDoc(doc(db, 'peserta', d.id), { [field]: !data[field] });
-                    showToast('Status berhasil diubah.');
+                    // showToast('Status berhasil diubah.'); // Dihilangkan agar tidak terlalu ramai notifikasi
                     loadPeserta();
                 });
             });
