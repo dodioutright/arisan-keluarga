@@ -1,4 +1,4 @@
-// Import fungsi Firebase yang dibutuhkan, termasuk query dan where
+// Import fungsi Firebase yang dibutuhkan
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -14,12 +14,13 @@ const firebaseConfig = {
     measurementId: "G-W3G810D7YL"
 };
 
+// --- INISIALISASI ---
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
 const currentPage = window.location.pathname.split('/').pop();
 
+// --- FUNGSI HELPERS ---
 const showToast = (message, isSuccess = true) => {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -30,6 +31,7 @@ const showToast = (message, isSuccess = true) => {
     setTimeout(() => toast.remove(), 3000);
 };
 
+// --- LOGIKA UTAMA & ROUTING ---
 onAuthStateChanged(auth, (user) => {
     const protectedPages = ['dashboard.html', 'peserta.html', 'pengaturan.html'];
     if (user) {
@@ -96,18 +98,19 @@ function initDashboardPage() {
     const showModal = (target) => { target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); };
     const hideModal = (target) => { target.classList.add('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.add('scale-95'); };
 
-    tutupModalBtn.addEventListener('click', () => hideModal(kocokanModal));
+    if(tutupModalBtn) tutupModalBtn.addEventListener('click', () => hideModal(kocokanModal));
 
     const getPengaturan = async () => {
         const pengaturanRef = doc(db, "pengaturan", "umum");
         const docSnap = await getDoc(pengaturanRef);
         if (docSnap.exists()) return docSnap.data();
+        
         const now = new Date();
-        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 1);
-        nextMonth.setDate(nextMonth.getDate() - 1);
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
         const year = nextMonth.getFullYear();
         const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
-        const day = '01';
+        const day = String(nextMonth.getDate()).padStart(2, '0');
+
         return { biaya_per_peserta: 100000, tanggal_kocokan: `${year}-${month}-${day}` };
     };
 
@@ -201,7 +204,7 @@ function initDashboardPage() {
         }
     };
     
-    kocokanBtn.addEventListener('click', handleKocokan);
+    if(kocokanBtn) kocokanBtn.addEventListener('click', handleKocokan);
 
     const loadDashboardData = async () => {
         try {
@@ -328,8 +331,10 @@ function initPesertaPage() {
                     <td class="p-4"><span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${peserta.status_bayar ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${peserta.status_bayar ? 'Lunas' : 'Menunggu'}</span></td>
                     <td class="p-4"><span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${peserta.status_menang ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-800'}">${peserta.status_menang ? 'Sudah' : 'Belum'}</span></td>
                     <td class="p-4 text-right">
-                        <button class="edit-btn p-2 rounded-md hover:bg-slate-100 text-slate-600"><i class="h-4 w-4" data-lucide="edit"></i></button>
-                        <button class="delete-btn p-2 rounded-md hover:bg-red-100 text-red-600"><i class="h-4 w-4" data-lucide="trash-2"></i></button>
+                        <div class="flex items-center justify-end gap-2">
+                            <button class="edit-btn p-2 rounded-md hover:bg-slate-100 text-slate-600"><i class="h-4 w-4" data-lucide="edit"></i></button>
+                            <button class="delete-btn p-2 rounded-md hover:bg-red-100 text-red-600"><i class="h-4 w-4" data-lucide="trash-2"></i></button>
+                        </div>
                     </td>
                 `;
                 tr.querySelector('.edit-btn').addEventListener('click', () => {
@@ -365,7 +370,7 @@ function initPesertaPage() {
             
             totalText.textContent = `Total ${localPesertaState.length} anggota aktif.`;
             renderPesertaTable(localPesertaState);
-            localStorage.setItem('pesertaCache', JSON.stringify(localPesertaState));
+            localStorage.setItem('pesertaCache', JSON.stringify(freshData));
         } catch (error) {
             console.error("Error memuat peserta:", error);
             if (!cachedDataString) listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data.</td></tr>`;
@@ -381,7 +386,43 @@ function initPengaturanPage() {
     const simpanBtn = document.getElementById('simpan-btn');
     const pengaturanRef = doc(db, "pengaturan", "umum");
 
-    const loadPengaturan = async () => { /* ... (fungsi sama) ... */ };
-    form.addEventListener('submit', async (e) => { /* ... (fungsi sama) ... */ });
+    const loadPengaturan = async () => {
+        try {
+            const docSnap = await getDoc(pengaturanRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                biayaInput.value = data.biaya_per_peserta;
+                tanggalInput.value = data.tanggal_kocokan;
+            } else {
+                biayaInput.value = 100000;
+                const now = new Date();
+                const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                const year = nextMonth.getFullYear();
+                const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
+                const day = String(nextMonth.getDate()).padStart(2, '0');
+                tanggalInput.value = `${year}-${month}-${day}`;
+            }
+        } catch (error) { showToast("Gagal memuat pengaturan.", false); }
+    };
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        simpanBtn.disabled = true;
+        simpanBtn.textContent = 'Menyimpan...';
+        const dataToSave = {
+            biaya_per_peserta: parseInt(biayaInput.value, 10),
+            tanggal_kocokan: tanggalInput.value,
+        };
+        try {
+            await setDoc(pengaturanRef, dataToSave);
+            showToast("Pengaturan berhasil disimpan!");
+        } catch (error) {
+            showToast("Gagal menyimpan pengaturan.", false);
+        } finally {
+            simpanBtn.disabled = false;
+            simpanBtn.innerHTML = '<i data-lucide="save" class="h-4 w-4"></i><span>Simpan Pengaturan</span>';
+            lucide.createIcons();
+        }
+    });
     loadPengaturan();
 }
