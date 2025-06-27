@@ -13,13 +13,44 @@
 </head>
 <body class="min-h-screen">
 
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div class="mx-auto max-w-4xl px-4">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
+        <nav class="mx-auto max-w-5xl px-4">
             <div class="flex h-16 items-center justify-between">
-                <h1 class="text-lg font-bold text-slate-900">Dashboard Arisan</h1>
+                <div class="flex items-center gap-3">
+                    <a href="#" class="flex items-center gap-2 text-slate-900">
+                        <div class="bg-slate-900 p-2 rounded-lg">
+                            <i data-lucide="gem" class="h-5 w-5 text-white"></i>
+                        </div>
+                        <span class="font-bold text-lg">Arisan</span>
+                    </a>
+                </div>
+
+                <div class="hidden md:flex items-center gap-2">
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-semibold bg-slate-100 text-slate-900">Dashboard</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">Peserta</a>
+                    <a href="#" class="px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">Pengaturan</a>
+                </div>
+
                 <div class="flex items-center gap-4">
-                    <span id="user-email" class="text-sm text-slate-600 hidden md:block"></span>
-                    <button id="logout-button" title="Keluar" class="p-2 rounded-md hover:bg-slate-100 text-slate-600 hover:text-slate-900">
+                     <button id="logout-button-desktop" title="Keluar" class="hidden md:block p-2 rounded-md hover:bg-slate-100 text-slate-600 hover:text-slate-900">
+                        <i data-lucide="log-out" class="h-5 w-5"></i>
+                    </button>
+                    <button id="mobile-menu-button" class="md:hidden p-2 rounded-md hover:bg-slate-100 text-slate-600 hover:text-slate-900">
+                        <i data-lucide="menu" class="h-6 w-6"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        
+        <div id="mobile-menu" class="hidden md:hidden absolute top-16 left-0 w-full bg-white border-b border-slate-200 shadow-lg">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium bg-slate-100 text-slate-900">Dashboard</a>
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">Peserta</a>
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">Pengaturan</a>
+                <div class="border-t border-slate-200 my-2"></div>
+                <div class="px-3 py-2 flex items-center justify-between">
+                     <span id="user-email" class="text-sm text-slate-600 truncate"></span>
+                     <button id="logout-button-mobile" title="Keluar" class="p-2 rounded-md hover:bg-slate-100 text-slate-600 hover:text-slate-900">
                         <i data-lucide="log-out" class="h-5 w-5"></i>
                     </button>
                 </div>
@@ -27,28 +58,52 @@
         </div>
     </header>
 
-    <main class="mx-auto max-w-4xl p-4 md:p-6 lg:p-8">
+    <main class="mx-auto max-w-5xl p-4 md:p-6 lg:p-8">
         <div class="space-y-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h2 class="text-xl font-semibold text-slate-900">Informasi Arisan "Keluarga Bahagia"</h2>
-                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-                    <div>
-                        <p class="text-slate-500">Total Peserta</p>
-                        <p id="total-peserta" class="text-2xl font-semibold text-slate-800">0</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                    <div class="bg-blue-100 p-3 rounded-lg">
+                        <i data-lucide="users" class="h-7 w-7 text-blue-600"></i>
                     </div>
                     <div>
-                        <p class="text-slate-500">Pemenang Bulan Ini</p>
-                        <p id="pemenang-bulan-ini" class="text-lg font-medium text-slate-800">-</p>
+                        <p class="text-sm text-slate-500">Total Peserta</p>
+                        <p id="total-peserta-card" class="text-2xl font-bold text-slate-900">0 Orang</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                    <div class="bg-green-100 p-3 rounded-lg">
+                        <i data-lucide="wallet" class="h-7 w-7 text-green-600"></i>
                     </div>
                     <div>
-                        <p class="text-slate-500">Status</p>
-                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-green-100 text-green-800">Aktif</span>
+                        <p class="text-sm text-slate-500">Dana Terkumpul</p>
+                        <p class="text-2xl font-bold text-slate-900">Rp 1.200.000</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                    <div class="bg-orange-100 p-3 rounded-lg">
+                        <i data-lucide="calendar-clock" class="h-7 w-7 text-orange-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500">Kocokan Berikutnya</p>
+                        <p class="text-2xl font-bold text-slate-900">3 Juli 2025</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+                    <div class="bg-yellow-100 p-3 rounded-lg">
+                        <i data-lucide="trophy" class="h-7 w-7 text-yellow-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500">Pemenang Terakhir</p>
+                        <p class="text-2xl font-bold text-slate-900">Andi Budiman</p>
                     </div>
                 </div>
             </div>
 
             <div>
-                <h3 class="text-lg font-semibold text-slate-900 mb-4">Daftar Peserta</h3>
+                <h3 class="text-lg font-semibold text-slate-900 mb-4">Daftar Peserta Aktif</h3>
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
