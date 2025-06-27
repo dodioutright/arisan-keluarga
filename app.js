@@ -16,13 +16,14 @@ import {
 // --- KONFIGURASI FIREBASE ---
 // TODO: Ganti dengan konfigurasi Firebase proyekmu!
 const firebaseConfig = {
-    apiKey: "AIzaSy...YOUR_API_KEY",
-    authDomain: "your-project-id.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project-id.appspot.com",
-    messagingSenderId: "your-sender-id",
-    appId: "1:your-app-id:web:your-web-app-id"
-};
+    apiKey: "AIzaSyAWOaZVoiyloMY-UUJHeccEKR9CWYc-d7w",
+    authDomain: "arisan-keluarga1.firebaseapp.com",
+    projectId: "arisan-keluarga1",
+    storageBucket: "arisan-keluarga1.firebasestorage.app",
+    messagingSenderId: "345958108395",
+    appId: "1:345958108395:web:700efa4296a8c2857142ae",
+    measurementId: "G-W3G810D7YL"
+  };
 
 // Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
