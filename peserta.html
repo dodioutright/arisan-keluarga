@@ -8,15 +8,21 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style> 
         body { font-family: 'Inter', sans-serif; } 
-        .modal-overlay, .dropdown-menu { transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out; }
+        .modal-overlay { transition: opacity 0.2s ease-in-out; }
         .modal-content { transition: transform 0.2s ease-in-out; }
+        /* Style untuk Toggle Switch */
+        .switch-toggle { transition: background-color 0.2s ease; }
+        .switch-dot { transition: transform 0.2s ease; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="min-h-screen">
 
     <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
-        </header>
+        <nav class="mx-auto max-w-4xl px-4">
+            </nav>
+    </header>
+
     <div id="mobile-sidebar" class="fixed inset-0 z-40 ...">
         </div>
 
@@ -32,21 +38,61 @@
             </button>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200">
-            <div class="flex items-center px-4 py-3 text-sm font-semibold text-slate-500 border-b border-slate-200">
-                <div class="w-full sm:w-1/2">Nama Peserta</div>
-                <div class="w-1/2 sm:w-1/4 text-center">Status Iuran</div>
-                <div class="w-auto sm:w-1/4 text-right">Aksi</div>
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="p-4 font-semibold text-slate-600">Nama Peserta</th>
+                            <th class="p-4 font-semibold text-slate-600">Status Iuran</th>
+                            <th class="p-4 font-semibold text-slate-600">Status Menang</th>
+                            <th class="p-4 font-semibold text-slate-600 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="peserta-list-manajemen" class="divide-y divide-slate-200">
+                        </tbody>
+                </table>
             </div>
-            <div id="peserta-list-manajemen" class="divide-y divide-slate-200">
-                </div>
         </div>
     </main>
     
-    <div id="peserta-modal" class="modal-overlay ...">
+    <div id="peserta-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 opacity-0 pointer-events-none">
+        <div class="modal-content bg-white w-full max-w-md p-6 rounded-lg shadow-xl transform scale-95">
+            <h2 id="modal-title" class="text-lg font-semibold">Tambah Peserta Baru</h2>
+            <form id="peserta-form" class="mt-4 space-y-4">
+                <input type="hidden" id="peserta-id">
+                <div>
+                    <label for="nama-peserta" class="text-sm font-medium">Nama Peserta</label>
+                    <input type="text" id="nama-peserta" required class="mt-1 flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm">
+                </div>
+                <div class="space-y-3 pt-2">
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm font-medium text-slate-700">Status Iuran Lunas</span>
+                        <div class="relative">
+                            <input type="checkbox" id="status-bayar-toggle" class="sr-only peer">
+                            <div class="switch-toggle w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-slate-900"></div>
+                            <div class="switch-dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full peer-checked:translate-x-full"></div>
+                        </div>
+                    </label>
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-sm font-medium text-slate-700">Status Sudah Menang</span>
+                         <div class="relative">
+                            <input type="checkbox" id="status-menang-toggle" class="sr-only peer">
+                            <div class="switch-toggle w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-slate-900"></div>
+                            <div class="switch-dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full peer-checked:translate-x-full"></div>
+                        </div>
+                    </label>
+                </div>
+                <div class="flex justify-end gap-2 pt-4">
+                    <button type="button" id="cancel-btn" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 border border-slate-200 bg-white hover:bg-slate-100">Batal</button>
+                    <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 bg-slate-900 text-white hover:bg-slate-800">Simpan</button>
+                </div>
+            </form>
         </div>
+    </div>
+    
     <div id="delete-modal" class="modal-overlay ...">
-        </div>
+         </div>
     <div id="toast-container" class="fixed ..."></div>
     
     <script type="module" src="app.js"></script>
