@@ -24,6 +24,7 @@
                 <div class="hidden md:flex items-center gap-2">
                     <a href="dashboard.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="layout-dashboard" class="h-4 w-4"></i><span>Dashboard</span></a>
                     <a href="peserta.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold bg-slate-100 text-slate-900"><i data-lucide="users" class="h-4 w-4"></i><span>Peserta</span></a>
+                    <a href="riwayat.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="history" class="h-4 w-4"></i><span>Riwayat</span></a>
                     <a href="pengaturan.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="settings" class="h-4 w-4"></i><span>Pengaturan</span></a>
                 </div>
                 <div class="flex items-center gap-2">
@@ -41,6 +42,7 @@
                 <nav class="space-y-2">
                     <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="layout-dashboard" class="h-5 w-5"></i><span>Dashboard</span></a>
                     <a href="peserta.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium bg-slate-100"><i data-lucide="users" class="h-5 w-5"></i><span>Peserta</span></a>
+                    <a href="riwayat.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="history" class="h-5 w-5"></i><span>Riwayat</span></a>
                     <a href="pengaturan.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="settings" class="h-5 w-5"></i><span>Pengaturan</span></a>
                 </nav>
                 <div><div class="border-t pt-4 flex items-center justify-between"><span id="user-email" class="text-sm text-slate-600 truncate"></span><button id="logout-button-mobile" title="Keluar" class="p-2 rounded-md hover:bg-slate-100 text-slate-600"><i data-lucide="log-out" class="h-5 w-5"></i></button></div></div>
@@ -59,6 +61,26 @@
                 <span class="hidden sm:inline">Tambah Peserta</span>
             </button>
         </div>
+        
+        <div class="mb-4 flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-grow">
+                <input type="text" id="search-input" placeholder="Cari nama peserta..." class="flex h-10 w-full rounded-md border border-slate-300 bg-transparent pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500"></i>
+            </div>
+            <div class="flex gap-3">
+                <select id="filter-select" class="flex h-10 rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+                    <option value="all">Semua Status</option>
+                    <option value="lunas">Sudah Bayar</option>
+                    <option value="belum-lunas">Belum Bayar</option>
+                    <option value="sudah-menang">Sudah Menang</option>
+                    <option value="belum-menang">Belum Menang</option>
+                </select>
+                <button id="reset-filter-btn" title="Reset Filter" class="inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-300 bg-white hover:bg-slate-100">
+                    <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+                </button>
+            </div>
+        </div>
+
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left">
