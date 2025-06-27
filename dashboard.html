@@ -6,7 +6,12 @@
     <title>Dashboard - Aplikasi Arisan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        .modal-overlay { transition: opacity 0.3s ease-in-out; }
+        .modal-content { transition: transform 0.3s ease-in-out, width 0.3s ease-in-out; }
+    </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="min-h-screen">
@@ -42,6 +47,17 @@
     </div>
 
     <main class="mx-auto max-w-4xl p-4 md:p-6 lg:p-8">
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+                <h2 class="font-bold text-lg text-slate-800">Siap untuk Pemenang Berikutnya?</h2>
+                <p class="text-sm text-slate-500">Klik tombol di samping untuk memulai proses pengocokan arisan.</p>
+            </div>
+            <button id="kocokan-btn" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-11 px-6 py-2 bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50">
+                <i data-lucide="play-circle" class="h-5 w-5"></i>
+                <span>Lakukan Kocokan</span>
+            </button>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
                 <div class="bg-blue-100 p-3 rounded-lg"><i data-lucide="users" class="h-7 w-7 text-blue-600"></i></div>
@@ -73,6 +89,29 @@
             </div>
         </div>
     </main>
+    
+    <div id="kocokan-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4 opacity-0 pointer-events-none">
+        <div class="modal-content bg-white w-full max-w-md p-6 sm:p-8 rounded-2xl shadow-xl transform scale-95 text-center">
+            
+            <div id="animasi-kocokan">
+                <h2 class="text-xl font-bold text-slate-800">Mengocok Pemenang...</h2>
+                <p class="text-slate-500 mt-2">Harap tunggu, sistem sedang memilih pemenang secara acak.</p>
+                <div class="my-8 h-24 flex items-center justify-center bg-slate-100 rounded-lg overflow-hidden">
+                    <span id="nama-animasi-display" class="text-3xl font-bold text-slate-700 transition-all duration-100"></span>
+                </div>
+            </div>
+
+            <div id="pemenang-container" class="hidden">
+                <i data-lucide="party-popper" class="mx-auto h-16 w-16 text-yellow-500"></i>
+                <h2 class="text-2xl font-bold text-slate-800 mt-4">Selamat kepada Pemenang!</h2>
+                <div class="my-6 bg-green-50 border-2 border-green-200 rounded-lg p-4">
+                    <p id="nama-pemenang" class="text-3xl font-extrabold text-green-700"></p>
+                </div>
+                <button id="tutup-modal-pemenang" class="w-full inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-slate-200 text-slate-800 hover:bg-slate-300">Tutup</button>
+            </div>
+        </div>
+    </div>
+    
     <script type="module" src="app.js"></script>
     <script>lucide.createIcons();</script>
 </body>
