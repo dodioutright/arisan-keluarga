@@ -1,74 +1,48 @@
 <!DOCTYPE html>
-<html lang="id" class="scroll-smooth">
+<html lang="id" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Arisan</title>
+    <title>Login - Aplikasi Arisan</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Gaya tambahan untuk konsistensi shadcn */
+        body { font-family: 'Inter', sans-serif; }
+    </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style> body { font-family: 'Inter', sans-serif; background-color: #f8fafc; } </style>
 </head>
-<body class="bg-slate-50">
+<body class="h-full flex items-center justify-center p-4">
 
-<header class="sticky top-0 z-30 lg:hidden flex items-center justify-between px-4 h-16 bg-white border-b border-slate-200">
-    <a href="index.html" class="font-bold text-lg flex items-center gap-2">
-        <i data-lucide="hand-coins" class="h-6 w-6 text-slate-800"></i> Arisan
-    </a>
-    <button id="mobile-menu-btn" class="p-2"><i data-lucide="menu"></i></button>
-</header>
-
-<div class="flex">
-    <aside id="sidebar" class="fixed top-0 z-40 lg:sticky h-screen w-64 bg-white border-r border-slate-200 p-6 flex flex-col -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
-        <div class="flex items-center justify-between mb-8">
-            <a href="index.html" class="flex items-center gap-2">
-                <i data-lucide="hand-coins" class="h-7 w-7 text-slate-800"></i>
-                <h3 class="font-bold text-xl">Arisan</h3>
-            </a>
-            <button id="close-sidebar-btn" class="p-2 lg:hidden"><i data-lucide="x"></i></button>
+    <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+        <div class="text-center">
+            <h1 class="text-2xl font-bold text-slate-900">Selamat Datang</h1>
+            <p class="text-sm text-slate-500 mt-2">Silakan masuk untuk melanjutkan ke dashboard.</p>
         </div>
-        <nav class="flex-1 flex flex-col space-y-2 text-sm text-slate-600">
-            <a href="index.html" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-md bg-slate-100 text-slate-900 font-medium"><i data-lucide="layout-dashboard" class="h-4 w-4"></i> Dashboard</a>
-            <a href="peserta.html" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 hover:text-slate-900"><i data-lucide="users" class="h-4 w-4"></i> Peserta</a>
-            <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 hover:text-slate-900"><i data-lucide="history" class="h-4 w-4"></i> Riwayat Kocokan</a>
-            <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 hover:text-slate-900"><i data-lucide="settings" class="h-4 w-4"></i> Pengaturan</a>
-        </nav>
-        <div class="mt-auto"><a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-sm text-slate-600 hover:text-slate-900"><i data-lucide="log-out" class="h-4 w-4"></i> Keluar</a></div>
-    </aside>
 
-    <main class="flex-1 p-4 md:p-8 lg:p-10">
-        <div class="max-w-7xl mx-auto">
-            <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div><h1 class="text-3xl font-bold text-slate-900">Dashboard</h1><p class="text-slate-500 mt-1">Ringkasan grup arisan Anda.</p></div>
-                <a href="peserta.html" class="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium h-11 px-6 py-2 bg-slate-900 text-white hover:bg-slate-800 shadow-sm"><i data-lucide="users" class="h-5 w-5"></i><span>Kelola Peserta</span></a>
+        <form id="login-form" class="mt-8 space-y-6">
+            <div>
+                <label for="email" class="text-sm font-medium text-slate-700">Email</label>
+                <input id="email" name="email" type="email" required
+                    class="mt-1 flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2">
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4"><div class="p-3 rounded-lg bg-blue-100 text-blue-600"><i data-lucide="users" class="h-6 w-6"></i></div><div><p class="text-sm text-slate-500">Total Peserta</p><p class="text-2xl font-semibold text-slate-900">12 Orang</p></div></div>
-                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4"><div class="p-3 rounded-lg bg-green-100 text-green-600"><i data-lucide="dollar-sign" class="h-6 w-6"></i></div><div><p class="text-sm text-slate-500">Dana Terkumpul</p><p class="text-2xl font-semibold text-slate-900">Rp 1.200.000</p></div></div>
-                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4"><div class="p-3 rounded-lg bg-orange-100 text-orange-600"><i data-lucide="calendar" class="h-6 w-6"></i></div><div><p class="text-sm text-slate-500">Kocokan Berikutnya</p><p class="text-2xl font-semibold text-slate-900">27 Juni 2025</p></div></div>
-                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4"><div class="p-3 rounded-lg bg-yellow-100 text-yellow-600"><i data-lucide="trophy" class="h-6 w-6"></i></div><div><p class="text-sm text-slate-500">Pemenang Terakhir</p><p class="text-2xl font-semibold text-slate-900">Andi Budiman</p></div></div>
+            <div>
+                <label for="password" class="text-sm font-medium text-slate-700">Password</label>
+                <input id="password" name="password" type="password" required
+                    class="mt-1 flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2">
             </div>
+            
+            <p id="error-message" class="text-sm text-red-600 text-center"></p>
 
-            <footer class="mt-12 pt-8 border-t border-slate-200 text-center text-sm text-slate-500"><p>© 2025 Arisan. All Rights Reserved.</p><p class="mt-1">Made with ❤️ by Dodi Outright.</p></footer>
-        </div>
-    </main>
-</div>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        lucide.createIcons();
-        const sidebar = document.getElementById('sidebar');
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const closeSidebarBtn = document.getElementById('close-sidebar-btn');
-        const sidebarLinks = document.querySelectorAll('.sidebar-link');
-        if(sidebar && mobileMenuBtn && closeSidebarBtn){
-            const openSidebar = () => sidebar.classList.remove('-translate-x-full');
-            const closeSidebar = () => sidebar.classList.add('-translate-x-full');
-            mobileMenuBtn.addEventListener('click', openSidebar);
-            closeSidebarBtn.addEventListener('click', closeSidebar);
-            sidebarLinks.forEach(link => link.addEventListener('click', () => { if(window.innerWidth < 1024) closeSidebar() }));
-        }
-    });
-</script>
+            <div>
+                <button type="submit"
+                    class="w-full inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800 transition-colors">
+                    Masuk
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script type="module" src="app.js"></script>
 </body>
 </html>
