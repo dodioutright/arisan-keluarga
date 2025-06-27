@@ -1,7 +1,9 @@
+// Import fungsi Firebase yang dibutuhkan, termasuk query dan where
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// --- KONFIGURASI FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyAWOaZVoiyloMY-UUJHeccEKR9CWYc-d7w",
     authDomain: "arisan-keluarga1.firebaseapp.com",
@@ -16,11 +18,22 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const currentPage = window.location.pathname.split('/').pop();
-
+// --- FUNGSI HELPERS ---
 const showToast = (message, isSuccess = true) => {
-    // Implementasi Toast
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    const bgColor = isSuccess ? 'bg-green-600' : 'bg-red-600';
+    toast.className = `w-full max-w-xs p-3 rounded-lg text-white ${bgColor} shadow-lg transition-all duration-300 transform-gpu animate-toast-in`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
 };
+
+// --- LOGIKA UTAMA & ROUTING ---
+const currentPage = window.location.pathname.split('/').pop();
 
 onAuthStateChanged(auth, (user) => {
     const protectedPages = ['dashboard.html', 'peserta.html'];
@@ -35,6 +48,7 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+// --- INISIALISASI HALAMAN LOGIN ---
 function initLoginPage() {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
@@ -50,6 +64,7 @@ function initLoginPage() {
     }
 }
 
+// --- INISIALISASI ELEMEN UMUM (SETELAH LOGIN) ---
 function initCommonElements(user) {
     const mobileMenuButton = document.getElementById('mobile-menu-button');
     const mobileSidebar = document.getElementById('mobile-sidebar');
@@ -71,6 +86,7 @@ function initCommonElements(user) {
     if (userEmailElement) userEmailElement.textContent = user.email;
 }
 
+// --- INISIALISASI HALAMAN DASHBOARD ---
 function initDashboardPage() {
     const totalPesertaCard = document.getElementById('total-peserta-card');
     const loadStats = async () => {
@@ -83,8 +99,10 @@ function initDashboardPage() {
     loadStats();
 }
 
+// --- INISIALISASI HALAMAN PESERTA (DIOPTIMALKAN) ---
 function initPesertaPage() {
     const listBody = document.getElementById('peserta-list-manajemen');
+    const skeletonBody = document.getElementById('peserta-list-skeleton');
     const totalText = document.getElementById('total-peserta-text');
     const modal = document.getElementById('peserta-modal');
     const deleteModal = document.getElementById('delete-modal');
@@ -106,13 +124,21 @@ function initPesertaPage() {
     });
     document.getElementById('cancel-btn').addEventListener('click', () => hideModal(modal));
     document.getElementById('cancel-delete-btn').addEventListener('click', () => hideModal(deleteModal));
+    
+    const invalidateCacheAndReload = () => {
+        localStorage.removeItem('pesertaCache');
+        listBody.classList.add('hidden');
+        skeletonBody.classList.remove('hidden');
+        loadPeserta();
+    };
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const data = {
             nama: nameInput.value,
             status_bayar: bayarToggle.checked,
-            status_menang: menangToggle.checked
+            status_menang: menangToggle.checked,
+            aktif: true // Pastikan peserta baru selalu aktif
         };
         const id = idInput.value;
         try {
@@ -124,7 +150,7 @@ function initPesertaPage() {
                 showToast('Peserta baru ditambahkan!');
             }
             hideModal(modal);
-            loadPeserta();
+            invalidateCacheAndReload();
         } catch (error) { showToast('Terjadi kesalahan', false); }
     });
 
@@ -134,44 +160,70 @@ function initPesertaPage() {
             await deleteDoc(doc(db, 'peserta', docIdToDelete));
             showToast('Peserta berhasil dihapus!');
             hideModal(deleteModal);
-            loadPeserta();
+            invalidateCacheAndReload();
         } catch (error) { showToast('Gagal menghapus', false); }
     });
 
-    const loadPeserta = async () => {
-        if (!listBody) return;
-        listBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">Memuat...</td></tr>`;
-        const snap = await getDocs(collection(db, "peserta"));
+    const renderPesertaTable = (pesertaArray) => {
+        if (!listBody || !skeletonBody) return;
         listBody.innerHTML = '';
-        totalText.textContent = `Total ${snap.size} anggota aktif.`;
-        if (snap.empty) {
+        if (pesertaArray.length === 0) {
             listBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">Belum ada peserta.</td></tr>`;
-            return;
-        }
-
-        snap.forEach(d => {
-            const data = d.data();
-            const tr = listBody.insertRow();
-            tr.innerHTML = `
-                <td class="p-4 font-medium text-slate-800">${data.nama}</td>
-                <td class="p-4"><span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${data.status_bayar ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${data.status_bayar ? 'Lunas' : 'Menunggu'}</span></td>
-                <td class="p-4"><span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${data.status_menang ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-800'}">${data.status_menang ? 'Sudah' : 'Belum'}</span></td>
-                <td class="p-4 text-right">
-                    <button class="edit-btn p-2 rounded-md hover:bg-slate-100 text-slate-600"><i class="h-4 w-4" data-lucide="edit"></i></button>
-                    <button class="delete-btn p-2 rounded-md hover:bg-red-100 text-red-600"><i class="h-4 w-4" data-lucide="trash-2"></i></button>
-                </td>
-            `;
-            tr.querySelector('.edit-btn').addEventListener('click', () => {
-                idInput.value = d.id;
-                nameInput.value = data.nama;
-                bayarToggle.checked = data.status_bayar;
-                menangToggle.checked = data.status_menang;
-                document.getElementById('modal-title').textContent = 'Ubah Data Peserta';
-                showModal(modal);
+        } else {
+            pesertaArray.forEach(peserta => {
+                const tr = listBody.insertRow();
+                tr.className = 'hover:bg-slate-50';
+                tr.innerHTML = `
+                    <td class="p-4 font-medium text-slate-800">${peserta.nama}</td>
+                    <td class="p-4"><span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${peserta.status_bayar ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${peserta.status_bayar ? 'Lunas' : 'Menunggu'}</span></td>
+                    <td class="p-4"><span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${peserta.status_menang ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-800'}">${peserta.status_menang ? 'Sudah' : 'Belum'}</span></td>
+                    <td class="p-4 text-right">
+                        <button class="edit-btn p-2 rounded-md hover:bg-slate-100 text-slate-600"><i class="h-4 w-4" data-lucide="edit"></i></button>
+                        <button class="delete-btn p-2 rounded-md hover:bg-red-100 text-red-600"><i class="h-4 w-4" data-lucide="trash-2"></i></button>
+                    </td>
+                `;
+                tr.querySelector('.edit-btn').addEventListener('click', () => {
+                    idInput.value = peserta.id;
+                    nameInput.value = peserta.nama;
+                    bayarToggle.checked = peserta.status_bayar;
+                    menangToggle.checked = peserta.status_menang;
+                    document.getElementById('modal-title').textContent = 'Ubah Data Peserta';
+                    showModal(modal);
+                });
+                tr.querySelector('.delete-btn').addEventListener('click', () => { docIdToDelete = peserta.id; showModal(deleteModal); });
             });
-            tr.querySelector('.delete-btn').addEventListener('click', () => { docIdToDelete = d.id; showModal(deleteModal); });
-        });
+        }
+        listBody.classList.remove('hidden');
+        skeletonBody.classList.add('hidden');
         lucide.createIcons();
     };
+
+    const loadPeserta = async () => {
+        const cachedDataString = localStorage.getItem('pesertaCache');
+        if (cachedDataString) {
+            const data = JSON.parse(cachedDataString);
+            totalText.textContent = `Total ${data.length} anggota aktif.`;
+            renderPesertaTable(data);
+        } else {
+            skeletonBody.classList.remove('hidden');
+        }
+
+        try {
+            const q = query(collection(db, "peserta"), where("aktif", "==", true));
+            const snap = await getDocs(q);
+            const freshData = [];
+            snap.forEach(d => freshData.push({ id: d.id, ...d.data() }));
+            
+            totalText.textContent = `Total ${freshData.length} anggota aktif.`;
+            renderPesertaTable(freshData);
+            localStorage.setItem('pesertaCache', JSON.stringify(freshData));
+        } catch (error) {
+            console.error("Gagal memuat data dari Firebase:", error);
+            showToast("Gagal memuat data terbaru.", false);
+            skeletonBody.classList.add('hidden');
+            if (!cachedDataString) listBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">Gagal memuat data.</td></tr>`;
+        }
+    };
+
     loadPeserta();
 }
