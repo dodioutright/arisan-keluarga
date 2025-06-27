@@ -326,6 +326,7 @@ function initPesertaPage() {
     const idInput = document.getElementById('peserta-id');
     const nameInput = document.getElementById('nama-peserta');
     const bayarToggle = document.getElementById('status-bayar-toggle');
+    const menangToggle = document.getElementById('status-menang-toggle');
     const paginationControls = document.getElementById('pagination-controls');
 
     let docIdToDelete = null;
@@ -369,11 +370,12 @@ function initPesertaPage() {
             const dataToSave = {
                 nama: nameInput.value,
                 status_bayar: bayarToggle.checked,
+                status_menang: menangToggle.checked,
             };
+
             if (id) {
                 await updateDoc(doc(db, 'peserta', id), dataToSave);
             } else {
-                dataToSave.status_menang = false;
                 dataToSave.aktif = true;
                 await addDoc(collection(db, 'peserta'), dataToSave);
             }
@@ -416,11 +418,9 @@ function initPesertaPage() {
         };
         
         paginationControls.appendChild(createButton('<i class="h-4 w-4" data-lucide="chevron-left"></i>', currentPage - 1, currentPage === 1));
-
         for (let i = 1; i <= pageCount; i++) {
             paginationControls.appendChild(createButton(i.toString(), i, false, currentPage === i));
         }
-
         paginationControls.appendChild(createButton('<i class="h-4 w-4" data-lucide="chevron-right"></i>', currentPage + 1, currentPage === pageCount));
         lucide.createIcons();
     };
@@ -455,6 +455,7 @@ function initPesertaPage() {
                     idInput.value = peserta.id;
                     nameInput.value = peserta.nama;
                     bayarToggle.checked = peserta.status_bayar;
+                    menangToggle.checked = peserta.status_menang;
                     document.getElementById('modal-title').textContent = 'Ubah Data Peserta';
                     showModal(modal);
                 });
