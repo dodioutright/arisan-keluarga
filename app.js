@@ -32,7 +32,7 @@ const showToast = (message, isSuccess = true) => {
 
 // --- LOGIKA UTAMA & ROUTING ---
 onAuthStateChanged(auth, (user) => {
-    const protectedPages = ['dashboard.html', 'peserta.html', 'pengaturan.html'];
+    const protectedPages = ['dashboard.html', 'peserta.html', 'pengaturan.html', 'riwayat.html'];
     if (user) {
         if (currentPagePath === 'index.html' || currentPagePath === '') {
             window.location.href = 'dashboard.html';
@@ -41,6 +41,7 @@ onAuthStateChanged(auth, (user) => {
         initCommonElements(user);
         if (currentPagePath === 'dashboard.html') initDashboardPage();
         if (currentPagePath === 'peserta.html') initPesertaPage();
+        if (currentPagePath === 'riwayat.html') initRiwayatPage();
         if (currentPagePath === 'pengaturan.html') initPengaturanPage();
 
     } else {
@@ -117,19 +118,8 @@ function initDashboardPage() {
     const namaPemenangEl = document.getElementById('nama-pemenang');
     const tutupModalBtn = document.getElementById('tutup-modal-pemenang');
 
-    const showModal = (target) => {
-        if (target) {
-            target.classList.remove('opacity-0', 'pointer-events-none');
-            target.querySelector('.modal-content').classList.remove('scale-95');
-        }
-    };
-    const hideModal = (target) => {
-        if (target) {
-            target.classList.add('opacity-0');
-            target.querySelector('.modal-content').classList.add('scale-95');
-            setTimeout(() => target.classList.add('pointer-events-none'), 300);
-        }
-    };
+    const showModal = (target) => { if (target) { target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); } };
+    const hideModal = (target) => { if (target) { target.classList.add('opacity-0'); target.querySelector('.modal-content').classList.add('scale-95'); setTimeout(() => target.classList.add('pointer-events-none'), 300); } };
 
     if (tutupModalBtn) tutupModalBtn.addEventListener('click', () => hideModal(kocokanModal));
 
@@ -137,21 +127,9 @@ function initDashboardPage() {
         if (!kocokanBtn) return;
         const defaultIcon = '<i data-lucide="play-circle" class="h-5 w-5"></i><span>Lakukan Kocokan</span>';
         const loadingIcon = '<i data-lucide="loader-circle" class="h-5 w-5 animate-spin"></i><span>Memproses...</span>';
-        
         kocokanBtn.disabled = (state === 'disabled' || state === 'loading');
-
-        if (state === 'loading') {
-            kocokanBtn.innerHTML = loadingIcon;
-        } else {
-            kocokanBtn.innerHTML = defaultIcon;
-        }
-
-        if (message) {
-            kocokanWarningEl.textContent = message;
-            kocokanWarningEl.classList.remove('hidden');
-        } else {
-            kocokanWarningEl.classList.add('hidden');
-        }
+        if (state === 'loading') { kocokanBtn.innerHTML = loadingIcon; } else { kocokanBtn.innerHTML = defaultIcon; }
+        if (message) { kocokanWarningEl.textContent = message; kocokanWarningEl.classList.remove('hidden'); } else { kocokanWarningEl.classList.add('hidden'); }
         lucide.createIcons();
     };
 
@@ -159,17 +137,12 @@ function initDashboardPage() {
         const pengaturanRef = doc(db, "pengaturan", "umum");
         const docSnap = await getDoc(pengaturanRef);
         if (docSnap.exists()) return docSnap.data();
-
         const now = new Date();
         const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
         const year = nextMonth.getFullYear();
         const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
         const day = String(nextMonth.getDate()).padStart(2, '0');
-
-        return {
-            biaya_per_peserta: 100000,
-            tanggal_kocokan: `${year}-${month}-${day}`
-        };
+        return { biaya_per_peserta: 100000, tanggal_kocokan: `${year}-${month}-${day}` };
     };
 
     const proceedWithDraw = async () => {
@@ -178,69 +151,34 @@ function initDashboardPage() {
             const q = query(collection(db, "peserta"), where("aktif", "==", true), where("status_bayar", "==", true), where("status_menang", "==", false));
             const eligibleSnap = await getDocs(q);
             const eligiblePeserta = [];
-            eligibleSnap.forEach(doc => eligiblePeserta.push({
-                id: doc.id,
-                ...doc.data()
-            }));
-
-            if (eligiblePeserta.length === 0) {
-                showToast("Tidak ada peserta yang memenuhi syarat.", false);
-                setKocokanButtonState('enabled');
-                return;
-            }
+            eligibleSnap.forEach(doc => eligiblePeserta.push({ id: doc.id, ...doc.data() }));
+            if (eligiblePeserta.length === 0) { showToast("Tidak ada peserta yang memenuhi syarat.", false); setKocokanButtonState('enabled'); return; }
 
             pemenangDiv.classList.add('hidden');
             animasiDiv.classList.remove('hidden');
             showModal(kocokanModal);
 
-            let animationInterval = setInterval(() => {
-                const randomIndex = Math.floor(Math.random() * eligiblePeserta.length);
-                namaAnimasiEl.textContent = eligiblePeserta[randomIndex].nama;
-            }, 75);
-            setTimeout(() => {
-                clearInterval(animationInterval);
-                animationInterval = setInterval(() => {
-                    const i = Math.floor(Math.random() * eligiblePeserta.length);
-                    namaAnimasiEl.textContent = eligiblePeserta[i].nama;
-                }, 150);
-            }, 2000);
-            setTimeout(() => {
-                clearInterval(animationInterval);
-                animationInterval = setInterval(() => {
-                    const i = Math.floor(Math.random() * eligiblePeserta.length);
-                    namaAnimasiEl.textContent = eligiblePeserta[i].nama;
-                }, 400);
-            }, 3500);
+            let animationInterval = setInterval(() => { const i = Math.floor(Math.random() * eligiblePeserta.length); namaAnimasiEl.textContent = eligiblePeserta[i].nama; }, 75);
+            setTimeout(() => { clearInterval(animationInterval); animationInterval = setInterval(() => { const i = Math.floor(Math.random() * eligiblePeserta.length); namaAnimasiEl.textContent = eligiblePeserta[i].nama; }, 150); }, 2000);
+            setTimeout(() => { clearInterval(animationInterval); animationInterval = setInterval(() => { const i = Math.floor(Math.random() * eligiblePeserta.length); namaAnimasiEl.textContent = eligiblePeserta[i].nama; }, 400); }, 3500);
 
             setTimeout(async () => {
                 clearInterval(animationInterval);
                 const pemenang = eligiblePeserta[Math.floor(Math.random() * eligiblePeserta.length)];
-                
-                await updateDoc(doc(db, 'peserta', pemenang.id), { 
-                    status_menang: true,
-                    tanggal_menang: new Date()
-                });
+                await updateDoc(doc(db, 'peserta', pemenang.id), { status_menang: true, tanggal_menang: new Date() });
                 localStorage.removeItem('pesertaCache');
-
                 namaAnimasiEl.textContent = pemenang.nama;
                 namaPemenangEl.textContent = pemenang.nama;
-                
                 setTimeout(() => {
                     animasiDiv.classList.add('hidden');
                     pemenangDiv.classList.remove('hidden');
                     lucide.createIcons();
                     if(window.confetti) confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
                 }, 500);
-
                 setKocokanButtonState('enabled');
                 loadDashboardData();
             }, 4500);
-
-        } catch (error) {
-            console.error("Error saat proses kocokan:", error);
-            showToast("Gagal melakukan proses kocokan.", false);
-            setKocokanButtonState('enabled');
-        }
+        } catch (error) { console.error("Error saat proses kocokan:", error); showToast("Gagal melakukan proses kocokan.", false); setKocokanButtonState('enabled'); }
     };
 
     const handleKocokan = async () => {
@@ -250,19 +188,12 @@ function initDashboardPage() {
             const tanggalKocokan = new Date(pengaturan.tanggal_kocokan + 'T00:00:00');
             const hariIni = new Date();
             hariIni.setHours(0, 0, 0, 0);
-
             if (hariIni < tanggalKocokan) {
                 showModal(confirmModal);
                 document.getElementById('cancel-kocokan-btn').onclick = () => { hideModal(confirmModal); setKocokanButtonState('enabled'); };
                 document.getElementById('proceed-kocokan-btn').onclick = () => { hideModal(confirmModal); proceedWithDraw(); };
-            } else {
-                proceedWithDraw();
-            }
-        } catch (error) {
-            console.error("Error memeriksa jadwal kocokan:", error);
-            showToast("Gagal memeriksa jadwal.", false);
-            setKocokanButtonState('enabled');
-        }
+            } else { proceedWithDraw(); }
+        } catch (error) { console.error("Error memeriksa jadwal kocokan:", error); showToast("Gagal memeriksa jadwal.", false); setKocokanButtonState('enabled'); }
     };
     
     if(kocokanBtn) kocokanBtn.addEventListener('click', handleKocokan);
@@ -270,13 +201,8 @@ function initDashboardPage() {
     const loadDashboardData = async () => {
         setKocokanButtonState('loading', 'Memuat data...');
         if (pemenangTerakhirEl) pemenangTerakhirEl.textContent = 'Memuat...';
-
         try {
-            const [pengaturan, pesertaSnap] = await Promise.all([
-                getPengaturan(),
-                getDocs(query(collection(db, "peserta"), where("aktif", "==", true)))
-            ]);
-
+            const [pengaturan, pesertaSnap] = await Promise.all([ getPengaturan(), getDocs(query(collection(db, "peserta"), where("aktif", "==", true))) ]);
             totalPesertaEl.textContent = `${pesertaSnap.size} Orang`;
             const pesertaLunas = pesertaSnap.docs.filter(doc => doc.data().status_bayar === true).length;
             const totalDana = pesertaLunas * pengaturan.biaya_per_peserta;
@@ -285,28 +211,16 @@ function initDashboardPage() {
             tanggalKocokanEl.textContent = tanggal.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
             
             const belumBayarCount = pesertaSnap.size - pesertaLunas;
-            if (belumBayarCount > 0) {
-                setKocokanButtonState('disabled', `Ada ${belumBayarCount} peserta belum membayar iuran.`);
-            } else {
-                setKocokanButtonState('enabled');
-            }
+            if (belumBayarCount > 0) { setKocokanButtonState('disabled', `Ada ${belumBayarCount} peserta belum membayar iuran.`); } else { setKocokanButtonState('enabled'); }
 
             const pemenangQuery = query(collection(db, "peserta"), where("status_menang", "==", true), orderBy("tanggal_menang", "desc"), limit(1));
             const pemenangSnap = await getDocs(pemenangQuery);
-
-            if (!pemenangSnap.empty) {
-                const pemenangTerakhir = pemenangSnap.docs[0].data();
-                pemenangTerakhirEl.textContent = pemenangTerakhir.nama;
-            } else {
-                pemenangTerakhirEl.textContent = '-';
-            }
-
+            if (!pemenangSnap.empty) { const pemenangTerakhir = pemenangSnap.docs[0].data(); pemenangTerakhirEl.textContent = pemenangTerakhir.nama; } 
+            else { pemenangTerakhirEl.textContent = '-'; }
         } catch (error) {
             console.error("Gagal memuat data dashboard:", error);
-            totalPesertaEl.textContent = 'Error';
-            danaTerkumpulEl.textContent = 'Error';
-            tanggalKocokanEl.textContent = 'Error';
-            pemenangTerakhirEl.textContent = 'Error';
+            totalPesertaEl.textContent = 'Error'; danaTerkumpulEl.textContent = 'Error'; tanggalKocokanEl.textContent = 'Error';
+            if(pemenangTerakhirEl) pemenangTerakhirEl.textContent = 'Error';
             setKocokanButtonState('disabled', 'Gagal memuat data.');
         }
     };
@@ -324,99 +238,82 @@ function initPesertaPage() {
     const bayarToggle = document.getElementById('status-bayar-toggle');
     const menangToggle = document.getElementById('status-menang-toggle');
     const paginationControls = document.getElementById('pagination-controls');
+    const searchInput = document.getElementById('search-input');
+    const filterSelect = document.getElementById('filter-select');
+    const resetBtn = document.getElementById('reset-filter-btn');
 
     let docIdToDelete = null;
     let localPesertaState = [];
+    let filteredPesertaState = [];
     let currentPage = 1;
     const itemsPerPage = 10;
 
-    const showModal = (target) => {
-        if (target) {
-            target.classList.remove('opacity-0', 'pointer-events-none');
-            target.querySelector('.modal-content').classList.remove('scale-95');
-        }
-    };
-    const hideModal = (target) => {
-        if (target) {
-            target.classList.add('opacity-0');
-            target.querySelector('.modal-content').classList.add('scale-95');
-            setTimeout(() => target.classList.add('pointer-events-none'), 300);
-        }
-    };
+    const showModal = (target) => { if (target) { target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); } };
+    const hideModal = (target) => { if (target) { target.classList.add('opacity-0'); target.querySelector('.modal-content').classList.add('scale-95'); setTimeout(() => target.classList.add('pointer-events-none'), 300); } };
 
-    document.getElementById('add-peserta-btn')?.addEventListener('click', () => {
-        form.reset();
-        idInput.value = '';
-        document.getElementById('modal-title').textContent = 'Tambah Peserta Baru';
-        showModal(modal);
-    });
+    document.getElementById('add-peserta-btn')?.addEventListener('click', () => { form.reset(); idInput.value = ''; document.getElementById('modal-title').textContent = 'Tambah Peserta Baru'; showModal(modal); });
     document.getElementById('cancel-btn')?.addEventListener('click', () => hideModal(modal));
     document.getElementById('cancel-delete-btn')?.addEventListener('click', () => hideModal(deleteModal));
 
-    const invalidateCacheAndReload = () => {
-        localStorage.removeItem('pesertaCache');
-        loadPeserta();
-    };
+    const invalidateCacheAndReload = () => { localStorage.removeItem('pesertaCache'); loadPeserta(); };
 
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = idInput.value;
         hideModal(modal);
         try {
-            const dataToSave = {
-                nama: nameInput.value,
-                status_bayar: bayarToggle.checked,
-                status_menang: menangToggle.checked,
-            };
-
-            if (id) {
-                await updateDoc(doc(db, 'peserta', id), dataToSave);
-            } else {
-                dataToSave.aktif = true;
-                await addDoc(collection(db, 'peserta'), dataToSave);
-            }
+            const dataToSave = { nama: nameInput.value, status_bayar: bayarToggle.checked, status_menang: menangToggle.checked };
+            if (id) { await updateDoc(doc(db, 'peserta', id), dataToSave); } 
+            else { dataToSave.aktif = true; await addDoc(collection(db, 'peserta'), dataToSave); }
             showToast(id ? 'Data berhasil diperbarui!' : 'Peserta baru ditambahkan!');
             invalidateCacheAndReload();
-        } catch (error) {
-            showToast('Gagal menyimpan ke server.', false);
-        }
+        } catch (error) { showToast('Gagal menyimpan ke server.', false); }
     });
 
     document.getElementById('confirm-delete-btn')?.addEventListener('click', async () => {
         if (!docIdToDelete) return;
         hideModal(deleteModal);
-        try {
-            await deleteDoc(doc(db, 'peserta', docIdToDelete));
-            showToast('Peserta berhasil dihapus!');
-            invalidateCacheAndReload();
-        } catch (error) {
-            showToast('Gagal menghapus dari server.', false);
-        }
+        try { await deleteDoc(doc(db, 'peserta', docIdToDelete)); showToast('Peserta berhasil dihapus!'); invalidateCacheAndReload(); } 
+        catch (error) { showToast('Gagal menghapus dari server.', false); }
     });
+
+    const applyFiltersAndRender = () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filterValue = filterSelect.value;
+        
+        filteredPesertaState = localPesertaState.filter(peserta => {
+            const matchesSearch = peserta.nama.toLowerCase().includes(searchTerm);
+            let matchesFilter = true;
+            switch(filterValue) {
+                case 'lunas': matchesFilter = peserta.status_bayar === true; break;
+                case 'belum-lunas': matchesFilter = peserta.status_bayar === false; break;
+                case 'sudah-menang': matchesFilter = peserta.status_menang === true; break;
+                case 'belum-menang': matchesFilter = peserta.status_menang === false; break;
+            }
+            return matchesSearch && matchesFilter;
+        });
+        
+        totalText.textContent = `Menampilkan ${filteredPesertaState.length} dari ${localPesertaState.length} peserta.`;
+        currentPage = 1;
+        renderPesertaTable();
+        setupPagination();
+    };
 
     const setupPagination = () => {
         if (!paginationControls) return;
         paginationControls.innerHTML = '';
-        const pageCount = Math.ceil(localPesertaState.length / itemsPerPage);
+        const pageCount = Math.ceil(filteredPesertaState.length / itemsPerPage);
         if (pageCount <= 1) return;
-
         const createButton = (text, page, isDisabled = false, isActive = false) => {
             const button = document.createElement('button');
             button.className = `inline-flex items-center justify-center rounded-md text-sm font-medium h-9 w-9 mx-0.5 ${isActive ? 'border border-slate-300 bg-slate-900 text-white' : 'hover:bg-slate-100'} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`;
             button.innerHTML = text;
             button.disabled = isDisabled;
-            button.addEventListener('click', () => {
-                currentPage = page;
-                renderPesertaTable();
-                setupPagination();
-            });
+            button.addEventListener('click', () => { currentPage = page; renderPesertaTable(); setupPagination(); });
             return button;
         };
-        
         paginationControls.appendChild(createButton('<i class="h-4 w-4" data-lucide="chevron-left"></i>', currentPage - 1, currentPage === 1));
-        for (let i = 1; i <= pageCount; i++) {
-            paginationControls.appendChild(createButton(i.toString(), i, false, currentPage === i));
-        }
+        for (let i = 1; i <= pageCount; i++) { paginationControls.appendChild(createButton(i.toString(), i, false, currentPage === i)); }
         paginationControls.appendChild(createButton('<i class="h-4 w-4" data-lucide="chevron-right"></i>', currentPage + 1, currentPage === pageCount));
         lucide.createIcons();
     };
@@ -424,13 +321,12 @@ function initPesertaPage() {
     const renderPesertaTable = () => {
         if (!listBody) return;
         listBody.innerHTML = '';
-
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        const paginatedItems = localPesertaState.slice(startIndex, endIndex);
+        const paginatedItems = filteredPesertaState.slice(startIndex, endIndex);
 
-        if (paginatedItems.length === 0 && currentPage === 1) {
-            listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Belum ada peserta.</td></tr>`;
+        if (paginatedItems.length === 0) {
+            listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Tidak ada peserta yang cocok dengan kriteria.</td></tr>`;
         } else {
             paginatedItems.forEach((peserta, index) => {
                 const tr = listBody.insertRow();
@@ -440,52 +336,86 @@ function initPesertaPage() {
                     <td class="p-4 font-medium text-slate-800">${peserta.nama}</td>
                     <td class="p-4"><span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${peserta.status_bayar ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${peserta.status_bayar ? 'Lunas' : 'Menunggu'}</span></td>
                     <td class="p-4"><span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${peserta.status_menang ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-800'}">${peserta.status_menang ? 'Sudah' : 'Belum'}</span></td>
-                    <td class="p-4 text-right">
-                        <div class="flex items-center justify-end gap-2">
-                            <button class="edit-btn p-2 rounded-md hover:bg-slate-100 text-slate-600"><i class="h-4 w-4" data-lucide="edit"></i></button>
-                            <button class="delete-btn p-2 rounded-md hover:bg-red-100 text-red-600"><i class="h-4 w-4" data-lucide="trash-2"></i></button>
-                        </div>
-                    </td>
+                    <td class="p-4 text-right"> <div class="flex items-center justify-end gap-2"> <button class="edit-btn p-2 rounded-md hover:bg-slate-100 text-slate-600"><i class="h-4 w-4" data-lucide="edit"></i></button> <button class="delete-btn p-2 rounded-md hover:bg-red-100 text-red-600"><i class="h-4 w-4" data-lucide="trash-2"></i></button> </div> </td>
                 `;
                 tr.querySelector('.edit-btn').addEventListener('click', () => {
-                    idInput.value = peserta.id;
-                    nameInput.value = peserta.nama;
-                    bayarToggle.checked = peserta.status_bayar;
-                    menangToggle.checked = peserta.status_menang;
-                    document.getElementById('modal-title').textContent = 'Ubah Data Peserta';
-                    showModal(modal);
+                    idInput.value = peserta.id; nameInput.value = peserta.nama; bayarToggle.checked = peserta.status_bayar; menangToggle.checked = peserta.status_menang;
+                    document.getElementById('modal-title').textContent = 'Ubah Data Peserta'; showModal(modal);
                 });
                 tr.querySelector('.delete-btn').addEventListener('click', () => {
-                    docIdToDelete = peserta.id;
-                    const namePlaceholder = document.getElementById('peserta-to-delete-name');
-                    if (namePlaceholder) { namePlaceholder.textContent = peserta.nama; }
-                    showModal(deleteModal);
+                    docIdToDelete = peserta.id; const namePlaceholder = document.getElementById('peserta-to-delete-name');
+                    if (namePlaceholder) { namePlaceholder.textContent = peserta.nama; } showModal(deleteModal);
                 });
             });
         }
         lucide.createIcons();
     };
+    
+    searchInput?.addEventListener('input', applyFiltersAndRender);
+    filterSelect?.addEventListener('change', applyFiltersAndRender);
+    resetBtn?.addEventListener('click', () => { searchInput.value = ''; filterSelect.value = 'all'; applyFiltersAndRender(); });
 
     const loadPeserta = async () => {
         listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Memuat data peserta...</td></tr>`;
         paginationControls.innerHTML = '';
         try {
             const snap = await getDocs(query(collection(db, "peserta")));
-            const freshData = [];
-            snap.forEach(d => freshData.push({ id: d.id, ...d.data() }));
-            localPesertaState = freshData;
-
-            totalText.textContent = `Total ${localPesertaState.length} anggota aktif.`;
-            currentPage = 1;
-            renderPesertaTable();
-            setupPagination();
-            localStorage.setItem('pesertaCache', JSON.stringify(freshData));
+            localPesertaState = [];
+            snap.forEach(d => localPesertaState.push({ id: d.id, ...d.data() }));
+            applyFiltersAndRender();
+            localStorage.setItem('pesertaCache', JSON.stringify(localPesertaState));
         } catch (error) {
             console.error("Error memuat peserta:", error);
             listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data.</td></tr>`;
         }
     };
     loadPeserta();
+}
+
+function initRiwayatPage() {
+    const listBody = document.getElementById('riwayat-list-body');
+    const totalPemenangText = document.getElementById('total-pemenang-text');
+
+    const loadRiwayatData = async () => {
+        if (!listBody) return;
+        listBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">Memuat riwayat...</td></tr>`;
+
+        try {
+            const q = query(collection(db, "peserta"), where("status_menang", "==", true), orderBy("tanggal_menang", "desc"));
+            const querySnapshot = await getDocs(q);
+            
+            listBody.innerHTML = '';
+            
+            if (querySnapshot.empty) {
+                listBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">Belum ada pemenang.</td></tr>`;
+                totalPemenangText.textContent = 'Total 0 pemenang.';
+                return;
+            }
+
+            totalPemenangText.textContent = `Total ${querySnapshot.size} pemenang tercatat.`;
+            querySnapshot.forEach((doc, index) => {
+                const data = doc.data();
+                const tr = listBody.insertRow();
+                tr.className = 'hover:bg-slate-50';
+
+                const tanggalMenang = data.tanggal_menang ? data.tanggal_menang.toDate().toLocaleDateString('id-ID', {
+                    day: 'numeric', month: 'long', year: 'numeric'
+                }) : 'Tidak tercatat';
+
+                tr.innerHTML = `
+                    <td class="p-4 text-slate-500 text-center">${index + 1}</td>
+                    <td class="p-4 font-medium text-slate-800">${data.nama}</td>
+                    <td class="p-4 text-slate-600">${tanggalMenang}</td>
+                `;
+            });
+
+        } catch (error) {
+            console.error("Error memuat riwayat:", error);
+            listBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500">Gagal memuat riwayat.</td></tr>`;
+        }
+    };
+
+    loadRiwayatData();
 }
 
 function initPengaturanPage() {
@@ -511,9 +441,7 @@ function initPengaturanPage() {
                 const day = String(nextMonth.getDate()).padStart(2, '0');
                 tanggalInput.value = `${year}-${month}-${day}`;
             }
-        } catch (error) {
-            showToast("Gagal memuat pengaturan.", false);
-        }
+        } catch (error) { showToast("Gagal memuat pengaturan.", false); }
     };
 
     form.addEventListener('submit', async (e) => {
@@ -529,9 +457,8 @@ function initPengaturanPage() {
         try {
             await setDoc(pengaturanRef, dataToSave);
             showToast("Pengaturan berhasil disimpan!");
-        } catch (error) {
-            showToast("Gagal menyimpan pengaturan.", false);
-        } finally {
+        } catch (error) { showToast("Gagal menyimpan pengaturan.", false); } 
+        finally {
             simpanBtn.disabled = false;
             simpanBtn.innerHTML = '<i data-lucide="save" class="h-4 w-4"></i><span>Simpan Pengaturan</span>';
             lucide.createIcons();
