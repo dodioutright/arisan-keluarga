@@ -37,19 +37,14 @@ const currentPage = window.location.pathname.split('/').pop();
 onAuthStateChanged(auth, (user) => {
     if (user) {
         // Pengguna sudah login
-        console.log("Pengguna login:", user.email);
         if (currentPage === 'index.html' || currentPage === '') {
-            // Jika di halaman login, arahkan ke dashboard
             window.location.href = 'dashboard.html';
         } else if (currentPage === 'dashboard.html') {
-            // Jika di dashboard, jalankan fungsi dashboard
             initDashboard(user);
         }
     } else {
         // Pengguna belum login
-        console.log("Pengguna belum login.");
         if (currentPage === 'dashboard.html') {
-            // Jika mencoba akses dashboard, tendang ke halaman login
             window.location.href = 'index.html';
         }
     }
@@ -59,23 +54,16 @@ onAuthStateChanged(auth, (user) => {
 // --- LOGIKA HALAMAN LOGIN ---
 if (currentPage === 'index.html' || currentPage === '') {
     const loginForm = document.getElementById('login-form');
-    const errorMessage = document.getElementById('error-message');
-
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const email = loginForm.email.value;
             const password = loginForm.password.value;
-            
-            errorMessage.textContent = ''; // Kosongkan pesan error
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = '';
 
             signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    // Berhasil login, onAuthStateChanged akan menangani redirect
-                    console.log("Login berhasil!", userCredential.user);
-                })
                 .catch((error) => {
-                    console.error("Error login:", error.message);
                     errorMessage.textContent = 'Email atau password salah. Coba lagi.';
                 });
         });
@@ -85,21 +73,44 @@ if (currentPage === 'index.html' || currentPage === '') {
 
 // --- LOGIKA HALAMAN DASHBOARD ---
 function initDashboard(user) {
-    // --- Elemen Navigasi ---
+    // --- Elemen UI ---
     const mobileMenuButton = document.getElementById('mobile-menu-button');
-    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileSidebar = document.getElementById('mobile-sidebar');
+    const sidebarContent = document.getElementById('sidebar-content');
+    const closeSidebarButton = document.getElementById('close-sidebar-button');
     const userEmailElement = document.getElementById('user-email');
     const logoutButtonDesktop = document.getElementById('logout-button-desktop');
     const logoutButtonMobile = document.getElementById('logout-button-mobile');
-    
-    // --- Elemen Konten ---
     const pesertaListElement = document.getElementById('peserta-list');
     const totalPesertaCard = document.getElementById('total-peserta-card');
     
-    // --- Logika Menu Mobile ---
-    if(mobileMenuButton && mobileMenu) {
-        mobileMenuButton.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
+    // --- Logika Buka/Tutup Sidebar ---
+    const openSidebar = () => {
+        if (!mobileSidebar || !sidebarContent) return;
+        document.body.style.overflow = 'hidden';
+        mobileSidebar.classList.remove('opacity-0', 'pointer-events-none');
+        sidebarContent.classList.remove('translate-x-full');
+    };
+
+    const closeSidebar = () => {
+        if (!mobileSidebar || !sidebarContent) return;
+        document.body.style.overflow = '';
+        sidebarContent.classList.add('translate-x-full');
+        mobileSidebar.classList.add('opacity-0');
+        // Tunggu transisi selesai sebelum menonaktifkan pointer events
+        setTimeout(() => {
+            mobileSidebar.classList.add('pointer-events-none');
+        }, 300); 
+    };
+
+    if (mobileMenuButton) mobileMenuButton.addEventListener('click', openSidebar);
+    if (closeSidebarButton) closeSidebarButton.addEventListener('click', closeSidebar);
+    // Tutup sidebar jika klik di luar area konten (overlay)
+    if (mobileSidebar) {
+        mobileSidebar.addEventListener('click', (event) => {
+            if (event.target === mobileSidebar) {
+                closeSidebar();
+            }
         });
     }
 
@@ -107,28 +118,21 @@ function initDashboard(user) {
     if(userEmailElement) userEmailElement.textContent = user.email;
 
     // Fungsi Logout
-    const handleLogout = () => {
-        signOut(auth).catch((error) => console.error("Error logout:", error));
-    };
-
+    const handleLogout = () => signOut(auth).catch((error) => console.error("Error logout:", error));
     if (logoutButtonDesktop) logoutButtonDesktop.addEventListener('click', handleLogout);
     if (logoutButtonMobile) logoutButtonMobile.addEventListener('click', handleLogout);
 
     // Fungsi untuk memuat data peserta dari Firestore
     async function loadPeserta() {
         if (!pesertaListElement) return;
-
         try {
             const querySnapshot = await getDocs(collection(db, "peserta"));
-            
             pesertaListElement.innerHTML = ''; 
-            
             if (querySnapshot.empty) {
                 pesertaListElement.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">Belum ada data peserta.</td></tr>`;
                 if(totalPesertaCard) totalPesertaCard.textContent = '0 Orang';
                 return;
             }
-
             let counter = 1;
             querySnapshot.forEach((doc) => {
                 const peserta = doc.data();
@@ -148,10 +152,7 @@ function initDashboard(user) {
                 `;
                 pesertaListElement.innerHTML += row;
             });
-            
-            // Update kartu total peserta
             if(totalPesertaCard) totalPesertaCard.textContent = `${querySnapshot.size} Orang`;
-
         } catch (error) {
             console.error("Error memuat data peserta: ", error);
             pesertaListElement.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">Gagal memuat data.</td></tr>`;
