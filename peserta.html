@@ -75,8 +75,12 @@
                 </table>
             </div>
         </div>
+
+        <div id="pagination-controls" class="flex items-center justify-end pt-6">
+            </div>
+
     </main>
-    
+
     <div id="peserta-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 opacity-0 pointer-events-none">
         <div class="modal-content bg-white w-full max-w-md p-6 rounded-lg shadow-xl transform scale-95">
             <h2 id="modal-title" class="text-lg font-semibold">Tambah Peserta Baru</h2>
@@ -103,10 +107,17 @@
             </form>
         </div>
     </div>
-    
+
     <div id="delete-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 opacity-0 pointer-events-none duration-200">
         <div class="modal-content bg-white w-full max-w-md p-6 rounded-lg shadow-xl transform scale-95 duration-200">
-            <h2 class="text-lg font-semibold">Konfirmasi Hapus</h2><p class="text-sm text-slate-500 mt-2">Yakin ingin menghapus peserta ini?</p><div class="flex justify-end gap-2 pt-6"><button type="button" id="cancel-delete-btn" class="h-9 px-4 rounded-md border hover:bg-slate-100">Batal</button><button type="button" id="confirm-delete-btn" class="h-9 px-4 rounded-md bg-red-600 text-white hover:bg-red-700">Hapus</button></div>
+            <h2 class="text-lg font-semibold">Konfirmasi Hapus</h2>
+            <p class="text-sm text-slate-500 mt-2">
+                Yakin ingin menghapus peserta <strong id="peserta-to-delete-name" class="font-semibold text-slate-800"></strong> ini?
+            </p>
+            <div class="flex justify-end gap-2 pt-6">
+                <button type="button" id="cancel-delete-btn" class="h-9 px-4 rounded-md border hover:bg-slate-100">Batal</button>
+                <button type="button" id="confirm-delete-btn" class="h-9 px-4 rounded-md bg-red-600 text-white hover:bg-red-700">Hapus</button>
+            </div>
         </div>
     </div>
 
