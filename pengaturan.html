@@ -30,6 +30,7 @@
                 <div class="hidden md:flex items-center gap-2">
                     <a href="dashboard.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="layout-dashboard" class="h-4 w-4"></i><span>Dashboard</span></a>
                     <a href="peserta.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="users" class="h-4 w-4"></i><span>Peserta</span></a>
+                    <a href="riwayat.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="history" class="h-4 w-4"></i><span>Riwayat</span></a>
                     <a href="pengaturan.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold bg-slate-100 text-slate-900"><i data-lucide="settings" class="h-4 w-4"></i><span>Pengaturan</span></a>
                 </div>
                 <div class="flex items-center gap-2">
@@ -47,6 +48,7 @@
                 <nav class="space-y-2">
                     <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="layout-dashboard" class="h-5 w-5"></i><span>Dashboard</span></a>
                     <a href="peserta.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="users" class="h-5 w-5"></i><span>Peserta</span></a>
+                    <a href="riwayat.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100"><i data-lucide="history" class="h-5 w-5"></i><span>Riwayat</span></a>
                     <a href="pengaturan.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium bg-slate-100"><i data-lucide="settings" class="h-5 w-5"></i><span>Pengaturan</span></a>
                 </nav>
                 <div><div class="border-t pt-4 flex items-center justify-between"><span id="user-email" class="text-sm text-slate-600 truncate"></span><button id="logout-button-mobile" title="Keluar" class="p-2 rounded-md hover:bg-slate-100 text-slate-600"><i data-lucide="log-out" class="h-5 w-5"></i></button></div></div>
@@ -74,7 +76,7 @@
                     <label for="tanggal_kocokan" class="block text-sm font-medium text-slate-700 mb-1">Tanggal Kocokan Berikutnya</label>
                     <input type="date" id="tanggal_kocokan" placeholder="Pilih tanggal" required class="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
                 </div>
-                
+
                 <div class="pt-2">
                     <button type="submit" id="simpan-btn" class="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-10 px-6 py-2 bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50">
                         <i data-lucide="save" class="h-4 w-4"></i>
@@ -86,7 +88,7 @@
     </main>
 
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
-    
+
     <script type="module" src="app.js"></script>
     <script>lucide.createIcons();</script>
 </body>
