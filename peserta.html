@@ -14,6 +14,8 @@
         .switch-dot { transition: transform 0.2s ease; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/jspdf-autotable@3.5.23/dist/jspdf.plugin.autotable.js"></script>
 </head>
 <body class="min-h-screen">
 
@@ -56,10 +58,16 @@
                 <h1 class="text-2xl font-bold text-slate-900">Daftar Peserta</h1>
                 <p id="total-peserta-text" class="text-sm text-slate-500 mt-1">Total 0 anggota aktif.</p>
             </div>
-            <button id="add-peserta-btn" class="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-10 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800">
-                <i data-lucide="plus" class="h-4 w-4"></i>
-                <span class="hidden sm:inline">Tambah Peserta</span>
-            </button>
+            <div class="flex items-center gap-2">
+                <button id="export-pdf-btn" class="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-10 px-4 py-2 bg-white text-slate-800 border border-slate-300 hover:bg-slate-50">
+                    <i data-lucide="file-down" class="h-4 w-4"></i>
+                    <span class="hidden sm:inline">Ekspor PDF</span>
+                </button>
+                <button id="add-peserta-btn" class="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-10 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800">
+                    <i data-lucide="plus" class="h-4 w-4"></i>
+                    <span class="hidden sm:inline">Tambah Peserta</span>
+                </button>
+            </div>
         </div>
         
         <div class="mb-4 flex flex-col sm:flex-row gap-3">
