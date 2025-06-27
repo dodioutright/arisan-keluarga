@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id" class="bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Aplikasi Arisan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-10">
+        <div class="mx-auto max-w-4xl px-4">
+            <div class="flex h-16 items-center justify-between">
+                <h1 class="text-lg font-bold text-slate-900">Dashboard Arisan</h1>
+                <div class="flex items-center gap-4">
+                    <span id="user-email" class="text-sm text-slate-600 hidden md:block"></span>
+                    <button id="logout-button" title="Keluar" class="p-2 rounded-md hover:bg-slate-100 text-slate-600 hover:text-slate-900">
+                        <i data-lucide="log-out" class="h-5 w-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-4xl p-4 md:p-6 lg:p-8">
+        <div class="space-y-8">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-semibold text-slate-900">Informasi Arisan "Keluarga Bahagia"</h2>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                    <div>
+                        <p class="text-slate-500">Total Peserta</p>
+                        <p id="total-peserta" class="text-2xl font-semibold text-slate-800">0</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-500">Pemenang Bulan Ini</p>
+                        <p id="pemenang-bulan-ini" class="text-lg font-medium text-slate-800">-</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-500">Status</p>
+                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-green-100 text-green-800">Aktif</span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-4">Daftar Peserta</h3>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="p-4 text-left font-semibold text-slate-600">No.</th>
+                                    <th class="p-4 text-left font-semibold text-slate-600">Nama Peserta</th>
+                                    <th class="p-4 text-left font-semibold text-slate-600">Status Bayar</th>
+                                    <th class="p-4 text-left font-semibold text-slate-600">Status Menang</th>
+                                </tr>
+                            </thead>
+                            <tbody id="peserta-list" class="divide-y divide-slate-200">
+                                <tr>
+                                    <td colspan="4" class="p-4 text-center text-slate-500">Memuat data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script type="module" src="app.js"></script>
+    <script>
+        lucide.createIcons(); // Inisialisasi ikon
+    </script>
+</body>
+</html>
