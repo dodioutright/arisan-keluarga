@@ -1,7 +1,9 @@
+// Import fungsi Firebase yang dibutuhkan, termasuk query dan where
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// --- KONFIGURASI FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyAWOaZVoiyloMY-UUJHeccEKR9CWYc-d7w",
     authDomain: "arisan-keluarga1.firebaseapp.com",
@@ -83,6 +85,7 @@ function initDashboardPage() {
     const danaTerkumpulEl = document.getElementById('dana-terkumpul-card');
     const tanggalKocokanEl = document.getElementById('tanggal-kocokan-card');
     const kocokanBtn = document.getElementById('kocokan-btn');
+    const confirmModal = document.getElementById('confirm-kocokan-modal');
     const kocokanModal = document.getElementById('kocokan-modal');
     const animasiDiv = document.getElementById('animasi-kocokan');
     const pemenangDiv = document.getElementById('pemenang-container');
@@ -90,12 +93,25 @@ function initDashboardPage() {
     const namaPemenangEl = document.getElementById('nama-pemenang');
     const tutupModalBtn = document.getElementById('tutup-modal-pemenang');
 
-    const showKocokanModal = () => { kocokanModal.classList.remove('opacity-0', 'pointer-events-none'); kocokanModal.querySelector('.modal-content').classList.remove('scale-95'); };
-    const hideKocokanModal = () => { kocokanModal.classList.add('opacity-0', 'pointer-events-none'); kocokanModal.querySelector('.modal-content').classList.add('scale-95'); };
+    const showModal = (target) => { target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); };
+    const hideModal = (target) => { target.classList.add('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.add('scale-95'); };
 
-    tutupModalBtn.addEventListener('click', hideKocokanModal);
+    tutupModalBtn.addEventListener('click', () => hideModal(kocokanModal));
 
-    const handleKocokan = async () => {
+    const getPengaturan = async () => {
+        const pengaturanRef = doc(db, "pengaturan", "umum");
+        const docSnap = await getDoc(pengaturanRef);
+        if (docSnap.exists()) return docSnap.data();
+        const now = new Date();
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 1);
+        nextMonth.setDate(nextMonth.getDate() - 1);
+        const year = nextMonth.getFullYear();
+        const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
+        const day = '01';
+        return { biaya_per_peserta: 100000, tanggal_kocokan: `${year}-${month}-${day}` };
+    };
+
+    const proceedWithDraw = async () => {
         kocokanBtn.disabled = true;
         kocokanBtn.innerHTML = 'Memeriksa peserta...';
         try {
@@ -114,7 +130,7 @@ function initDashboardPage() {
 
             pemenangDiv.classList.add('hidden');
             animasiDiv.classList.remove('hidden');
-            showKocokanModal();
+            showModal(kocokanModal);
 
             let animationInterval = setInterval(() => {
                 const randomIndex = Math.floor(Math.random() * eligiblePeserta.length);
@@ -137,7 +153,7 @@ function initDashboardPage() {
                     animasiDiv.classList.add('hidden');
                     pemenangDiv.classList.remove('hidden');
                     lucide.createIcons();
-                    confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+                    if(window.confetti) confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
                 }, 500);
 
                 kocokanBtn.disabled = false;
@@ -146,6 +162,7 @@ function initDashboardPage() {
             }, 4500);
 
         } catch (error) {
+            console.error("Error saat proses kocokan:", error);
             showToast("Gagal melakukan proses kocokan.", false);
             kocokanBtn.disabled = false;
             kocokanBtn.innerHTML = '<i data-lucide="play-circle" class="h-5 w-5"></i><span>Lakukan Kocokan</span>';
@@ -153,12 +170,218 @@ function initDashboardPage() {
         }
     };
 
+    const handleKocokan = async () => {
+        kocokanBtn.disabled = true;
+        kocokanBtn.textContent = 'Memeriksa jadwal...';
+        try {
+            const pengaturan = await getPengaturan();
+            const tanggalKocokan = new Date(pengaturan.tanggal_kocokan + 'T00:00:00');
+            const hariIni = new Date();
+            hariIni.setHours(0, 0, 0, 0);
+
+            if (hariIni < tanggalKocokan) {
+                showModal(confirmModal);
+                document.getElementById('cancel-kocokan-btn').onclick = () => {
+                    hideModal(confirmModal);
+                    kocokanBtn.disabled = false;
+                    kocokanBtn.textContent = 'Lakukan Kocokan';
+                };
+                document.getElementById('proceed-kocokan-btn').onclick = () => {
+                    hideModal(confirmModal);
+                    proceedWithDraw();
+                };
+            } else {
+                proceedWithDraw();
+            }
+        } catch (error) {
+            console.error("Error memeriksa jadwal kocokan:", error);
+            showToast("Gagal memeriksa jadwal.", false);
+            kocokanBtn.disabled = false;
+            kocokanBtn.textContent = 'Lakukan Kocokan';
+        }
+    };
+    
     kocokanBtn.addEventListener('click', handleKocokan);
 
-    const getPengaturan = async () => { /* ... (fungsi sama) ... */ };
-    const loadDashboardData = async () => { /* ... (fungsi sama) ... */ };
+    const loadDashboardData = async () => {
+        try {
+            const [pengaturan, pesertaSnap] = await Promise.all([
+                getPengaturan(),
+                getDocs(query(collection(db, "peserta"), where("aktif", "==", true)))
+            ]);
+
+            totalPesertaEl.textContent = `${pesertaSnap.size} Orang`;
+            const pesertaLunas = pesertaSnap.docs.filter(doc => doc.data().status_bayar === true).length;
+            const totalDana = pesertaLunas * pengaturan.biaya_per_peserta;
+            danaTerkumpulEl.textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalDana);
+            const tanggal = new Date(pengaturan.tanggal_kocokan + 'T00:00:00'); 
+            tanggalKocokanEl.textContent = tanggal.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        } catch (error) {
+            console.error("Gagal memuat data dashboard:", error);
+            totalPesertaEl.textContent = 'Error';
+            danaTerkumpulEl.textContent = 'Error';
+            tanggalKocokanEl.textContent = 'Error';
+        }
+    };
     loadDashboardData();
 }
 
-function initPesertaPage() { /* ... (kode tidak berubah) ... */ }
-function initPengaturanPage() { /* ... (kode tidak berubah) ... */ }
+function initPesertaPage() {
+    const listBody = document.getElementById('peserta-list-manajemen');
+    const skeletonBody = document.getElementById('peserta-list-skeleton');
+    const totalText = document.getElementById('total-peserta-text');
+    const modal = document.getElementById('peserta-modal');
+    const deleteModal = document.getElementById('delete-modal');
+    const form = document.getElementById('peserta-form');
+    const idInput = document.getElementById('peserta-id');
+    const nameInput = document.getElementById('nama-peserta');
+    const bayarToggle = document.getElementById('status-bayar-toggle');
+    let docIdToDelete = null;
+    let localPesertaState = [];
+
+    const showModal = (target) => { target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); };
+    const hideModal = (target) => { target.classList.add('opacity-0'); target.querySelector('.modal-content').classList.add('scale-95'); setTimeout(() => target.classList.add('pointer-events-none'), 300); };
+    
+    document.getElementById('add-peserta-btn').addEventListener('click', () => {
+        form.reset();
+        idInput.value = '';
+        document.getElementById('modal-title').textContent = 'Tambah Peserta Baru';
+        showModal(modal);
+    });
+    document.getElementById('cancel-btn').addEventListener('click', () => hideModal(modal));
+    document.getElementById('cancel-delete-btn').addEventListener('click', () => hideModal(deleteModal));
+    
+    const invalidateCacheAndReload = () => {
+        localStorage.removeItem('pesertaCache');
+        if (skeletonBody) skeletonBody.classList.remove('hidden');
+        if (listBody) listBody.classList.add('hidden');
+        loadPeserta();
+    };
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = idInput.value;
+        const optimisticData = {
+            id: id || `temp-${Date.now()}`,
+            nama: nameInput.value,
+            status_bayar: bayarToggle.checked,
+            status_menang: id ? (localPesertaState.find(p => p.id === id)?.status_menang || false) : false,
+            aktif: true
+        };
+
+        const originalState = [...localPesertaState];
+        hideModal(modal);
+
+        if (id) {
+            localPesertaState = localPesertaState.map(p => p.id === id ? optimisticData : p);
+        } else {
+            localPesertaState.push(optimisticData);
+        }
+        renderPesertaTable(localPesertaState);
+        
+        try {
+            const dataToSave = { nama: optimisticData.nama, status_bayar: optimisticData.status_bayar, aktif: true };
+            if (id) {
+                await updateDoc(doc(db, 'peserta', id), dataToSave);
+            } else {
+                dataToSave.status_menang = false;
+                await addDoc(collection(db, 'peserta'), dataToSave);
+            }
+            showToast(id ? 'Data berhasil diperbarui!' : 'Peserta baru ditambahkan!');
+            invalidateCacheAndReload();
+        } catch (error) {
+            showToast('Gagal menyimpan ke server.', false);
+            renderPesertaTable(originalState);
+        }
+    });
+
+    document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+        if (!docIdToDelete) return;
+        const originalState = [...localPesertaState];
+        const idToDelete = docIdToDelete;
+        hideModal(deleteModal);
+        localPesertaState = localPesertaState.filter(p => p.id !== idToDelete);
+        renderPesertaTable(localPesertaState);
+        try {
+            await deleteDoc(doc(db, 'peserta', idToDelete));
+            showToast('Peserta berhasil dihapus!');
+            invalidateCacheAndReload();
+        } catch (error) {
+            showToast('Gagal menghapus dari server.', false);
+            renderPesertaTable(originalState);
+        }
+    });
+    
+    const renderPesertaTable = (pesertaArray) => {
+        if (!listBody) return;
+        listBody.innerHTML = '';
+        if (pesertaArray.length === 0) {
+            listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Belum ada peserta.</td></tr>`;
+        } else {
+            let counter = 1;
+            pesertaArray.forEach(peserta => {
+                const tr = listBody.insertRow();
+                tr.className = 'hover:bg-slate-50';
+                tr.innerHTML = `
+                    <td class="p-4 text-slate-500 text-center">${counter++}</td>
+                    <td class="p-4 font-medium text-slate-800">${peserta.nama}</td>
+                    <td class="p-4"><span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${peserta.status_bayar ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${peserta.status_bayar ? 'Lunas' : 'Menunggu'}</span></td>
+                    <td class="p-4"><span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold ${peserta.status_menang ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-800'}">${peserta.status_menang ? 'Sudah' : 'Belum'}</span></td>
+                    <td class="p-4 text-right">
+                        <button class="edit-btn p-2 rounded-md hover:bg-slate-100 text-slate-600"><i class="h-4 w-4" data-lucide="edit"></i></button>
+                        <button class="delete-btn p-2 rounded-md hover:bg-red-100 text-red-600"><i class="h-4 w-4" data-lucide="trash-2"></i></button>
+                    </td>
+                `;
+                tr.querySelector('.edit-btn').addEventListener('click', () => {
+                    idInput.value = peserta.id;
+                    nameInput.value = peserta.nama;
+                    bayarToggle.checked = peserta.status_bayar;
+                    document.getElementById('modal-title').textContent = 'Ubah Data Peserta';
+                    showModal(modal);
+                });
+                tr.querySelector('.delete-btn').addEventListener('click', () => { docIdToDelete = peserta.id; showModal(deleteModal); });
+            });
+        }
+        if(skeletonBody) skeletonBody.classList.add('hidden');
+        listBody.classList.remove('hidden');
+        lucide.createIcons();
+    };
+
+    const loadPeserta = async () => {
+        const cachedDataString = localStorage.getItem('pesertaCache');
+        if (cachedDataString) {
+            localPesertaState = JSON.parse(cachedDataString);
+            totalText.textContent = `Total ${localPesertaState.length} anggota aktif.`;
+            renderPesertaTable(localPesertaState);
+        } else {
+            if(skeletonBody) skeletonBody.classList.remove('hidden');
+        }
+
+        try {
+            const snap = await getDocs(collection(db, "peserta"));
+            const freshData = [];
+            snap.forEach(d => freshData.push({ id: d.id, ...d.data() }));
+            localPesertaState = freshData;
+            
+            totalText.textContent = `Total ${localPesertaState.length} anggota aktif.`;
+            renderPesertaTable(localPesertaState);
+            localStorage.setItem('pesertaCache', JSON.stringify(localPesertaState));
+        } catch (error) {
+            console.error("Error memuat peserta:", error);
+            if (!cachedDataString) listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data.</td></tr>`;
+        }
+    };
+    loadPeserta();
+}
+
+function initPengaturanPage() {
+    const form = document.getElementById('pengaturan-form');
+    const biayaInput = document.getElementById('biaya_per_peserta');
+    const tanggalInput = document.getElementById('tanggal_kocokan');
+    const simpanBtn = document.getElementById('simpan-btn');
+    const pengaturanRef = doc(db, "pengaturan", "umum");
+
+    const loadPengaturan = async () => { /* ... (fungsi sama) ... */ };
+    form.addEventListener('submit', async (e) => { /* ... (fungsi sama) ... */ });
+    loadPengaturan();
+}
