@@ -6,9 +6,9 @@
     <title>Manajemen Peserta - Aplikasi Arisan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .modal-overlay { transition: opacity 0.2s ease-in-out; }
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        .modal-overlay, .dropdown-menu { transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out; }
         .modal-content { transition: transform 0.2s ease-in-out; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,89 +16,38 @@
 <body class="min-h-screen">
 
     <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
-        <nav class="mx-auto max-w-4xl px-4">
-            <div class="flex h-16 items-center justify-between">
-                <a href="dashboard.html" class="flex items-center gap-2 text-slate-900"><div class="bg-slate-900 p-2 rounded-lg"><i data-lucide="gem" class="h-5 w-5 text-white"></i></div><span class="font-bold text-lg">Arisan</span></a>
-                <div class="hidden md:flex items-center gap-2">
-                    <a href="dashboard.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"><i data-lucide="layout-dashboard" class="h-4 w-4"></i><span>Dashboard</span></a>
-                    <a href="peserta.html" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold bg-slate-100 text-slate-900"><i data-lucide="users" class="h-4 w-4"></i><span>Peserta</span></a>
-                    <a href="#" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"><i data-lucide="settings" class="h-4 w-4"></i><span>Pengaturan</span></a>
-                </div>
-                <div class="flex items-center"><button id="mobile-menu-button" class="md:hidden p-2 rounded-md hover:bg-slate-100 text-slate-600 hover:text-slate-900"><i data-lucide="menu" class="h-6 w-6"></i></button></div>
-            </div>
-        </nav>
-    </header>
-
-    <div id="mobile-sidebar" class="fixed inset-0 z-40 flex justify-end bg-black bg-opacity-60 transition-opacity duration-300 ease-in-out opacity-0 pointer-events-none">
-        <div id="sidebar-content" class="relative w-72 max-w-[85%] bg-white h-full shadow-xl transition-transform duration-300 ease-in-out transform translate-x-full">
-            <div class="flex items-center justify-between p-4 border-b border-slate-200"><h2 class="font-bold text-lg">Menu</h2><button id="close-sidebar-button" class="p-2 rounded-full hover:bg-slate-100"><i data-lucide="x" class="h-5 w-5"></i></button></div>
-            <div class="flex flex-col justify-between h-[calc(100%-65px)] p-4">
-                <nav class="space-y-2">
-                    <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"><i data-lucide="layout-dashboard" class="h-5 w-5"></i><span>Dashboard</span></a>
-                    <a href="peserta.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium bg-slate-100 text-slate-900"><i data-lucide="users" class="h-5 w-5"></i><span>Peserta</span></a>
-                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"><i data-lucide="settings" class="h-5 w-5"></i><span>Pengaturan</span></a>
-                </nav>
-                <div><div class="border-t border-slate-200 pt-4 flex items-center justify-between"><span id="user-email" class="text-sm text-slate-600 truncate"></span><button id="logout-button-mobile" title="Keluar" class="p-2 rounded-md hover:bg-slate-100 text-slate-600 hover:text-slate-900"><i data-lucide="log-out" class="h-5 w-5"></i></button></div></div>
-            </div>
+        </header>
+    <div id="mobile-sidebar" class="fixed inset-0 z-40 ...">
         </div>
-    </div>
 
     <main class="mx-auto max-w-4xl p-4 md:p-6 lg:p-8">
         <div class="flex items-center justify-between mb-6">
-            <h1 class="text-2xl font-bold text-slate-900">Manajemen Peserta</h1>
-            <button id="add-peserta-btn" class="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium h-10 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">Daftar Peserta</h1>
+                <p id="total-peserta-text" class="text-sm text-slate-500 mt-1">Total 0 anggota aktif.</p>
+            </div>
+            <button id="add-peserta-btn" class="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-10 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800">
                 <i data-lucide="plus" class="h-4 w-4"></i>
-                <span>Tambah Peserta</span>
+                <span class="hidden sm:inline">Tambah Peserta</span>
             </button>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="p-4 text-left font-semibold text-slate-600">Nama Peserta</th>
-                            <th class="p-4 text-left font-semibold text-slate-600">Status Bayar</th>
-                            <th class="p-4 text-left font-semibold text-slate-600">Status Menang</th>
-                            <th class="p-4 text-left font-semibold text-slate-600">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="peserta-list-manajemen" class="divide-y divide-slate-200">
-                        </tbody>
-                </table>
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200">
+            <div class="flex items-center px-4 py-3 text-sm font-semibold text-slate-500 border-b border-slate-200">
+                <div class="w-full sm:w-1/2">Nama Peserta</div>
+                <div class="w-1/2 sm:w-1/4 text-center">Status Iuran</div>
+                <div class="w-auto sm:w-1/4 text-right">Aksi</div>
             </div>
+            <div id="peserta-list-manajemen" class="divide-y divide-slate-200">
+                </div>
         </div>
     </main>
-
-    <div id="peserta-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 opacity-0 pointer-events-none">
-        <div class="modal-content bg-white w-full max-w-md p-6 rounded-lg shadow-xl transform scale-95">
-            <h2 id="modal-title" class="text-lg font-semibold">Tambah Peserta Baru</h2>
-            <form id="peserta-form" class="mt-4 space-y-4">
-                <input type="hidden" id="peserta-id">
-                <div>
-                    <label for="nama-peserta" class="text-sm font-medium">Nama Peserta</label>
-                    <input type="text" id="nama-peserta" required class="mt-1 flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm">
-                </div>
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" id="cancel-btn" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 border border-slate-200 bg-white hover:bg-slate-100">Batal</button>
-                    <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 bg-slate-900 text-white hover:bg-slate-800">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
     
-    <div id="delete-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 opacity-0 pointer-events-none">
-        <div class="modal-content bg-white w-full max-w-md p-6 rounded-lg shadow-xl transform scale-95">
-            <h2 class="text-lg font-semibold">Konfirmasi Hapus</h2>
-            <p class="text-sm text-slate-500 mt-2">Apakah Anda yakin ingin menghapus peserta ini? Tindakan ini tidak dapat dibatalkan.</p>
-            <div class="flex justify-end gap-2 pt-6">
-                <button type="button" id="cancel-delete-btn" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 border border-slate-200 bg-white hover:bg-slate-100">Batal</button>
-                <button type="button" id="confirm-delete-btn" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 bg-red-600 text-white hover:bg-red-700">Hapus</button>
-            </div>
+    <div id="peserta-modal" class="modal-overlay ...">
         </div>
-    </div>
-    
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
+    <div id="delete-modal" class="modal-overlay ...">
+        </div>
+    <div id="toast-container" class="fixed ..."></div>
     
     <script type="module" src="app.js"></script>
     <script>lucide.createIcons();</script>
