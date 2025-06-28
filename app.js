@@ -282,6 +282,7 @@ function initDashboardPage() {
 
 function initPesertaPage() {
     const listBody = document.getElementById('peserta-list-manajemen');
+    const skeletonBody = document.getElementById('peserta-list-skeleton');
     const totalText = document.getElementById('total-peserta-text');
     const modal = document.getElementById('peserta-modal');
     const deleteModal = document.getElementById('delete-modal');
@@ -330,7 +331,11 @@ function initPesertaPage() {
     document.getElementById('cancel-btn')?.addEventListener('click', () => hideModal(modal));
     document.getElementById('cancel-delete-btn')?.addEventListener('click', () => hideModal(deleteModal));
 
-    const invalidateCacheAndReload = () => { localStorage.removeItem('pesertaCache'); localStorage.removeItem('dashboardCache'); loadPeserta(); };
+    const invalidateCacheAndReload = () => { 
+        localStorage.removeItem('pesertaCache'); 
+        localStorage.removeItem('dashboardCache'); 
+        loadPeserta(); 
+    };
 
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -495,6 +500,8 @@ function initPesertaPage() {
                 });
             });
         }
+        skeletonBody.classList.add('hidden');
+        listBody.classList.remove('hidden');
         lucide.createIcons();
     };
     
@@ -504,7 +511,8 @@ function initPesertaPage() {
     resetBtn?.addEventListener('click', () => { searchInput.value = ''; filterSelect.value = 'all'; applyFiltersAndRender(); });
 
     const loadPeserta = async () => {
-        listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Memuat data peserta...</td></tr>`;
+        skeletonBody.classList.remove('hidden');
+        listBody.classList.add('hidden');
         paginationControls.innerHTML = '';
         try {
             const snap = await getDocs(query(collection(db, "peserta")));
@@ -514,6 +522,8 @@ function initPesertaPage() {
             localStorage.setItem('pesertaCache', JSON.stringify(localPesertaState));
         } catch (error) {
             console.error("Error memuat peserta:", error);
+            skeletonBody.classList.add('hidden');
+            listBody.classList.remove('hidden');
             listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data.</td></tr>`;
         }
     };
