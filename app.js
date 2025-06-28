@@ -151,18 +151,15 @@ function initDashboardPage() {
         try {
             const pengaturan = await getPengaturan();
             const jumlahPemenang = pengaturan.jumlah_pemenang || 1;
-
             const q = query(collection(db, "peserta"), where("aktif", "==", true), where("status_bayar", "==", true), where("status_menang", "==", false));
             const eligibleSnap = await getDocs(q);
             const eligiblePeserta = [];
             eligibleSnap.forEach(doc => eligiblePeserta.push({ id: doc.id, ...doc.data() }));
-
             if (eligiblePeserta.length < jumlahPemenang) {
                 showToast(`Peserta yang memenuhi syarat (${eligiblePeserta.length}) kurang dari jumlah pemenang (${jumlahPemenang}).`, false);
                 setKocokanButtonState('enabled');
                 return;
             }
-
             const pemenangTerpilih = [];
             let pool = [...eligiblePeserta];
             for (let i = 0; i < jumlahPemenang; i++) {
@@ -170,18 +167,14 @@ function initDashboardPage() {
                 pemenangTerpilih.push(pool[randomIndex]);
                 pool.splice(randomIndex, 1);
             }
-
             pemenangDiv.classList.add('hidden');
             animasiDiv.classList.remove('hidden');
             showModal(kocokanModal);
-
             let animationInterval = setInterval(() => { const i = Math.floor(Math.random() * eligiblePeserta.length); namaAnimasiEl.textContent = eligiblePeserta[i].nama; }, 75);
             setTimeout(() => { clearInterval(animationInterval); animationInterval = setInterval(() => { const i = Math.floor(Math.random() * eligiblePeserta.length); namaAnimasiEl.textContent = eligiblePeserta[i].nama; }, 150); }, 2000);
             setTimeout(() => { clearInterval(animationInterval); animationInterval = setInterval(() => { const i = Math.floor(Math.random() * eligiblePeserta.length); namaAnimasiEl.textContent = eligiblePeserta[i].nama; }, 400); }, 3500);
-
             setTimeout(async () => {
                 clearInterval(animationInterval);
-
                 const batch = writeBatch(db);
                 pemenangTerpilih.forEach(pemenang => {
                     const docRef = doc(db, 'peserta', pemenang.id);
@@ -189,7 +182,7 @@ function initDashboardPage() {
                 });
                 await batch.commit();
                 localStorage.removeItem('pesertaCache');
-
+                localStorage.removeItem('dashboardCache');
                 if (judulPemenangEl) judulPemenangEl.textContent = `Selamat kepada ${pemenangTerpilih.length} Pemenang!`;
                 if (daftarPemenangContainer) {
                     daftarPemenangContainer.innerHTML = '';
@@ -200,18 +193,15 @@ function initDashboardPage() {
                         daftarPemenangContainer.appendChild(p);
                     });
                 }
-                
                 setTimeout(() => {
                     animasiDiv.classList.add('hidden');
                     pemenangDiv.classList.remove('hidden');
                     lucide.createIcons();
                     if(window.confetti) confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
                 }, 500);
-
                 setKocokanButtonState('enabled');
                 loadDashboardData();
             }, 4500);
-
         } catch (error) {
             console.error("Error saat proses kocokan:", error);
             showToast("Gagal melakukan proses kocokan.", false);
@@ -238,27 +228,52 @@ function initDashboardPage() {
 
     const loadDashboardData = async () => {
         setKocokanButtonState('loading', 'Memuat data...');
-        if (pemenangTerakhirEl) pemenangTerakhirEl.textContent = 'Memuat...';
+        const createSkeleton = (title) => `<p class="text-sm text-slate-500">${title}</p><div class="animate-pulse flex-1 space-y-2 py-1 mt-1"><div class="h-6 w-3/4 rounded bg-slate-200"></div></div>`;
+        const cachedData = localStorage.getItem('dashboardCache');
+        if (cachedData) {
+            const data = JSON.parse(cachedData);
+            totalPesertaEl.innerHTML = `<p class="text-sm text-slate-500">Total Peserta</p><p class="text-2xl font-bold text-slate-900">${data.totalPesertaText}</p>`;
+            danaTerkumpulEl.innerHTML = `<p class="text-sm text-slate-500">Dana Terkumpul</p><p class="text-2xl font-bold text-slate-900">${data.totalDanaText}</p>`;
+            tanggalKocokanEl.innerHTML = `<p class="text-sm text-slate-500">Kocokan Berikutnya</p><p class="text-2xl font-bold text-slate-900">${data.tanggalKocokanText}</p>`;
+            pemenangTerakhirEl.innerHTML = `<p class="text-sm text-slate-500">Pemenang Terakhir</p><p class="text-2xl font-bold text-slate-900">${data.pemenangTerakhirText}</p>`;
+        } else {
+            totalPesertaEl.innerHTML = createSkeleton('Total Peserta');
+            danaTerkumpulEl.innerHTML = createSkeleton('Dana Terkumpul');
+            tanggalKocokanEl.innerHTML = createSkeleton('Kocokan Berikutnya');
+            pemenangTerakhirEl.innerHTML = createSkeleton('Pemenang Terakhir');
+        }
+
         try {
             const [pengaturan, pesertaSnap] = await Promise.all([ getPengaturan(), getDocs(query(collection(db, "peserta"), where("aktif", "==", true))) ]);
-            totalPesertaEl.textContent = `${pesertaSnap.size} Orang`;
+            const totalPesertaText = `${pesertaSnap.size} Orang`;
             const pesertaLunas = pesertaSnap.docs.filter(doc => doc.data().status_bayar === true).length;
-            const totalDana = pesertaLunas * pengaturan.biaya_per_peserta;
-            danaTerkumpulEl.textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalDana);
+            const totalDana = pesertaLunas * (pengaturan.biaya_per_peserta || 0);
+            const totalDanaText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalDana);
             const tanggal = new Date(pengaturan.tanggal_kocokan + 'T00:00:00');
-            tanggalKocokanEl.textContent = tanggal.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            const tanggalKocokanText = tanggal.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
             
+            const pemenangQuery = query(collection(db, "peserta"), where("status_menang", "==", true), orderBy("tanggal_menang", "desc"), limit(1));
+            const pemenangSnap = await getDocs(pemenangQuery);
+            const pemenangTerakhirText = pemenangSnap.empty ? '-' : pemenangSnap.docs[0].data().nama;
+
+            totalPesertaEl.innerHTML = `<p class="text-sm text-slate-500">Total Peserta</p><p class="text-2xl font-bold text-slate-900">${totalPesertaText}</p>`;
+            danaTerkumpulEl.innerHTML = `<p class="text-sm text-slate-500">Dana Terkumpul</p><p class="text-2xl font-bold text-slate-900">${totalDanaText}</p>`;
+            tanggalKocokanEl.innerHTML = `<p class="text-sm text-slate-500">Kocokan Berikutnya</p><p class="text-2xl font-bold text-slate-900">${tanggalKocokanText}</p>`;
+            pemenangTerakhirEl.innerHTML = `<p class="text-sm text-slate-500">Pemenang Terakhir</p><p class="text-2xl font-bold text-slate-900">${pemenangTerakhirText}</p>`;
+            
+            const dataToCache = { totalPesertaText, totalDanaText, tanggalKocokanText, pemenangTerakhirText };
+            localStorage.setItem('dashboardCache', JSON.stringify(dataToCache));
+
             const belumBayarCount = pesertaSnap.size - pesertaLunas;
             if (belumBayarCount > 0) { setKocokanButtonState('disabled', `Ada ${belumBayarCount} peserta belum membayar iuran.`); } else { setKocokanButtonState('enabled'); }
 
-            const pemenangQuery = query(collection(db, "peserta"), where("status_menang", "==", true), orderBy("tanggal_menang", "desc"), limit(1));
-            const pemenangSnap = await getDocs(pemenangQuery);
-            if (!pemenangSnap.empty) { const pemenangTerakhir = pemenangSnap.docs[0].data(); pemenangTerakhirEl.textContent = pemenangTerakhir.nama; } 
-            else { pemenangTerakhirEl.textContent = '-'; }
         } catch (error) {
             console.error("Gagal memuat data dashboard:", error);
-            totalPesertaEl.textContent = 'Error'; danaTerkumpulEl.textContent = 'Error'; tanggalKocokanEl.textContent = 'Error';
-            if(pemenangTerakhirEl) pemenangTerakhirEl.textContent = 'Error';
+            const errorHtml = `<p class="text-sm text-red-500">Gagal Memuat</p>`;
+            totalPesertaEl.innerHTML = `<p class="text-sm text-slate-500">Total Peserta</p>${errorHtml}`;
+            danaTerkumpulEl.innerHTML = `<p class="text-sm text-slate-500">Dana Terkumpul</p>${errorHtml}`;
+            tanggalKocokanEl.innerHTML = `<p class="text-sm text-slate-500">Kocokan Berikutnya</p>${errorHtml}`;
+            pemenangTerakhirEl.innerHTML = `<p class="text-sm text-slate-500">Pemenang Terakhir</p>${errorHtml}`;
             setKocokanButtonState('disabled', 'Gagal memuat data.');
         }
     };
@@ -315,24 +330,20 @@ function initPesertaPage() {
     document.getElementById('cancel-btn')?.addEventListener('click', () => hideModal(modal));
     document.getElementById('cancel-delete-btn')?.addEventListener('click', () => hideModal(deleteModal));
 
-    const invalidateCacheAndReload = () => { localStorage.removeItem('pesertaCache'); loadPeserta(); };
+    const invalidateCacheAndReload = () => { localStorage.removeItem('pesertaCache'); localStorage.removeItem('dashboardCache'); loadPeserta(); };
 
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = form.querySelector('button[type="submit"]');
-
         const nama = nameInput.value.trim();
         if (nama === '') {
             showToast('Nama peserta tidak boleh kosong.', false);
             return;
         }
-
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i data-lucide="loader-circle" class="h-4 w-4 animate-spin"></i><span>Menyimpan...</span>';
         lucide.createIcons();
-
         const id = idInput.value;
-        
         try {
             const dataToSave = { nama: nama, status_bayar: bayarToggle.checked, status_menang: menangToggle.checked };
             if (id) { 
@@ -635,6 +646,7 @@ function initPengaturanPage() {
             });
             await batch.commit();
             localStorage.removeItem('pesertaCache');
+            localStorage.removeItem('dashboardCache');
             hideModal(resetModal);
             showToast('Siklus arisan berhasil direset!');
         } catch (error) {
