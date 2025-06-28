@@ -8,16 +8,6 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style> 
         body { font-family: 'Inter', sans-serif; } 
-        
-        main.is-loading button,
-        main.is-loading input,
-        main.is-loading select,
-        main.is-loading textarea {
-            pointer-events: none;
-            opacity: 0.6;
-            cursor: not-allowed !important;
-        }
-
         .modal-overlay { transition: opacity 0.2s ease-in-out; }
         .modal-content { transition: transform 0.2s ease-in-out; }
         input[type="date"]:before {
@@ -129,7 +119,7 @@
 
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
 
-    <script type="module" src="app.js?v=2"></script>
+    <script type="module" src="app.js?v=3"></script>
     <script>lucide.createIcons();</script>
 </body>
 </html>
