@@ -530,7 +530,9 @@ function initRiwayatPage() {
             }
 
             if(totalPemenangText) totalPemenangText.textContent = `Total ${querySnapshot.size} pemenang tercatat.`;
-            querySnapshot.forEach((doc, index) => {
+            
+            let counter = 1;
+            querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 const tr = listBody.insertRow();
                 tr.className = 'hover:bg-slate-50';
@@ -540,10 +542,11 @@ function initRiwayatPage() {
                 }) : 'Tidak tercatat';
 
                 tr.innerHTML = `
-                    <td class="p-4 text-slate-500 text-center">${index + 1}</td>
+                    <td class="p-4 text-slate-500 text-center">${counter}</td>
                     <td class="p-4 font-medium text-slate-800">${data.nama}</td>
                     <td class="p-4 text-slate-600">${tanggalMenang}</td>
                 `;
+                counter++;
             });
 
         } catch (error) {
