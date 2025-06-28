@@ -104,6 +104,7 @@ function initCommonElements(user) {
 }
 
 function initDashboardPage() {
+    const mainElement = document.querySelector('main');
     const totalPesertaEl = document.getElementById('total-peserta-card');
     const danaTerkumpulEl = document.getElementById('dana-terkumpul-card');
     const tanggalKocokanEl = document.getElementById('tanggal-kocokan-card');
@@ -227,6 +228,7 @@ function initDashboardPage() {
     if(kocokanBtn) kocokanBtn.addEventListener('click', handleKocokan);
 
     const loadDashboardData = async () => {
+        mainElement?.classList.add('is-loading');
         setKocokanButtonState('loading', 'Memuat data...');
         const createSkeleton = (title) => `<p class="text-sm text-slate-500">${title}</p><div class="animate-pulse flex-1 space-y-2 py-1 mt-1"><div class="h-6 w-3/4 rounded bg-slate-200"></div></div>`;
         const cachedData = localStorage.getItem('dashboardCache');
@@ -275,6 +277,8 @@ function initDashboardPage() {
             tanggalKocokanEl.innerHTML = `<p class="text-sm text-slate-500">Kocokan Berikutnya</p>${errorHtml}`;
             pemenangTerakhirEl.innerHTML = `<p class="text-sm text-slate-500">Pemenang Terakhir</p>${errorHtml}`;
             setKocokanButtonState('disabled', 'Gagal memuat data.');
+        } finally {
+            mainElement?.classList.remove('is-loading');
         }
     };
     loadDashboardData();
@@ -590,7 +594,14 @@ function initPengaturanPage() {
     
     const formElements = form ? Array.from(form.querySelectorAll('input, button')) : [];
     const toggleFormState = (disabled) => {
-        formElements.forEach(el => el.disabled = disabled);
+        formElements.forEach(el => {
+            el.disabled = disabled;
+            if(disabled) {
+                el.classList.add('opacity-60', 'cursor-not-allowed');
+            } else {
+                el.classList.remove('opacity-60', 'cursor-not-allowed');
+            }
+        });
     };
 
     const showModal = (target) => { if (target) { target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); } };
