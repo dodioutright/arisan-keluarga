@@ -281,20 +281,37 @@ function initPesertaPage() {
 
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitBtn = form.querySelector('button[type="submit"]');
+
         const nama = nameInput.value.trim();
         if (nama === '') {
             showToast('Nama peserta tidak boleh kosong.', false);
             return;
         }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i data-lucide="loader-circle" class="h-4 w-4 animate-spin"></i><span>Menyimpan...</span>';
+        lucide.createIcons();
+
         const id = idInput.value;
-        hideModal(modal);
+        
         try {
             const dataToSave = { nama: nama, status_bayar: bayarToggle.checked, status_menang: menangToggle.checked };
-            if (id) { await updateDoc(doc(db, 'peserta', id), dataToSave); } 
-            else { dataToSave.aktif = true; await addDoc(collection(db, 'peserta'), dataToSave); }
+            if (id) { 
+                await updateDoc(doc(db, 'peserta', id), dataToSave); 
+            } else { 
+                dataToSave.aktif = true; 
+                await addDoc(collection(db, 'peserta'), dataToSave); 
+            }
+            hideModal(modal);
             showToast(id ? 'Data berhasil diperbarui!' : 'Peserta baru ditambahkan!');
             invalidateCacheAndReload();
-        } catch (error) { showToast('Gagal menyimpan ke server.', false); }
+        } catch (error) { 
+            showToast('Gagal menyimpan ke server.', false); 
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Simpan';
+        }
     });
 
     document.getElementById('confirm-delete-btn')?.addEventListener('click', async () => {
