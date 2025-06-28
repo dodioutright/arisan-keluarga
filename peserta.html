@@ -101,7 +101,31 @@
                             <th class="p-4 font-semibold text-slate-600 text-right">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody id="peserta-list-manajemen" class="divide-y divide-slate-200"></tbody>
+                    <tbody id="peserta-list-skeleton">
+                        <tr class="animate-pulse">
+                            <td class="p-4"><div class="h-5 w-5 rounded-md bg-slate-200 mx-auto"></div></td>
+                            <td class="p-4"><div class="h-5 rounded-md bg-slate-200"></div></td>
+                            <td class="p-4"><div class="h-5 w-20 rounded-md bg-slate-200"></div></td>
+                            <td class="p-4"><div class="h-5 w-20 rounded-md bg-slate-200"></div></td>
+                            <td class="p-4"><div class="flex justify-end gap-2"><div class="h-8 w-8 rounded-md bg-slate-200"></div><div class="h-8 w-8 rounded-md bg-slate-200"></div></div></td>
+                        </tr>
+                        <tr class="animate-pulse">
+                            <td class="p-4"><div class="h-5 w-5 rounded-md bg-slate-200 mx-auto"></div></td>
+                            <td class="p-4"><div class="h-5 rounded-md bg-slate-200"></div></td>
+                            <td class="p-4"><div class="h-5 w-20 rounded-md bg-slate-200"></div></td>
+                            <td class="p-4"><div class="h-5 w-20 rounded-md bg-slate-200"></div></td>
+                            <td class="p-4"><div class="flex justify-end gap-2"><div class="h-8 w-8 rounded-md bg-slate-200"></div><div class="h-8 w-8 rounded-md bg-slate-200"></div></div></td>
+                        </tr>
+                        <tr class="animate-pulse">
+                            <td class="p-4"><div class="h-5 w-5 rounded-md bg-slate-200 mx-auto"></div></td>
+                            <td class="p-4"><div class="h-5 rounded-md bg-slate-200"></div></td>
+                            <td class="p-4"><div class="h-5 w-20 rounded-md bg-slate-200"></div></td>
+                            <td class="p-4"><div class="h-5 w-20 rounded-md bg-slate-200"></div></td>
+                            <td class="p-4"><div class="flex justify-end gap-2"><div class="h-8 w-8 rounded-md bg-slate-200"></div><div class="h-8 w-8 rounded-md bg-slate-200"></div></div></td>
+                        </tr>
+                    </tbody>
+                    <tbody id="peserta-list-manajemen" class="divide-y divide-slate-200 hidden">
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -110,61 +134,6 @@
             </div>
 
     </main>
-
-    <div id="peserta-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 opacity-0 pointer-events-none">
-        <div class="modal-content bg-white w-full max-w-md p-6 rounded-lg shadow-xl transform scale-95">
-            <h2 id="modal-title" class="text-lg font-semibold">Tambah Peserta Baru</h2>
-            <form id="peserta-form" class="mt-4 space-y-4">
-                <input type="hidden" id="peserta-id">
-                <div>
-                    <label for="nama-peserta" class="text-sm font-medium">Nama Peserta</label>
-                    <input type="text" id="nama-peserta" required class="mt-1 flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm">
-                </div>
-                <div class="space-y-3 pt-2">
-                    <label class="flex items-center justify-between cursor-pointer">
-                        <span class="text-sm font-medium text-slate-700">Status Iuran Lunas</span>
-                        <div class="relative">
-                            <input type="checkbox" id="status-bayar-toggle" class="sr-only peer">
-                            <div class="switch-toggle w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-slate-900"></div>
-                            <div class="switch-dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full peer-checked:translate-x-full"></div>
-                        </div>
-                    </label>
-                    <div>
-                        <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-sm font-medium text-slate-700">Status Menang</span>
-                            <div class="relative">
-                                <input type="checkbox" id="status-menang-toggle" class="sr-only peer">
-                                <div class="switch-toggle w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-slate-900"></div>
-                                <div class="switch-dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full peer-checked:translate-x-full"></div>
-                            </div>
-                        </label>
-                        <p id="menang-helper-text" class="text-xs text-slate-500 mt-1 pl-1 hidden">Status menang bisa diaktifkan jika iuran sudah lunas.
-                        </p>
-                    </div>
-                </div>
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" id="cancel-btn" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 border border-slate-200 bg-white hover:bg-slate-100">Batal</button>
-                    <button type="submit" class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-4 bg-slate-900 text-white hover:bg-slate-800">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="delete-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 opacity-0 pointer-events-none duration-200">
-        <div class="modal-content bg-white w-full max-w-md p-6 rounded-lg shadow-xl transform scale-95 duration-200">
-            <h2 class="text-lg font-semibold">Konfirmasi Hapus</h2>
-            <p class="text-sm text-slate-500 mt-2">
-                Yakin ingin menghapus peserta <strong id="peserta-to-delete-name" class="font-semibold text-slate-800"></strong> ini?
-            </p>
-            <div class="flex justify-end gap-2 pt-6">
-                <button type="button" id="cancel-delete-btn" class="h-9 px-4 rounded-md border hover:bg-slate-100">Batal</button>
-                <button type="button" id="confirm-delete-btn" class="h-9 px-4 rounded-md bg-red-600 text-white hover:bg-red-700">Hapus</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
-    <script type="module" src="app.js"></script>
-    <script>lucide.createIcons();</script>
-</body>
+    
+    </body>
 </html>
