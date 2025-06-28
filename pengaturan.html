@@ -84,25 +84,27 @@
                 </div>
 
                 <div class="pt-2">
-                    <button type="submit" id="simpan-btn" class="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-10 px-6 py-2 bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50">
+                    <button type="submit" id="simpan-btn" class="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-10 px-6 py-2 bg-slate-900 text-white hover:bg-slate-800">
                         <i data-lucide="save" class="h-4 w-4"></i>
                         <span>Simpan Pengaturan</span>
                     </button>
                 </div>
             </form>
-            
-            <div class="border-t border-slate-200 mt-6 pt-6">
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">
+            <div class="border-red-500/50 rounded-lg border-2 border-dashed p-4">
                 <h3 class="text-lg font-semibold text-red-600">Zona Berbahaya</h3>
                 <p class="text-sm text-slate-500 mt-1">Tindakan berikut tidak dapat diurungkan. Pastikan Anda benar-benar yakin.</p>
                 <div class="mt-4">
-                    <button id="reset-arisan-btn" class="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-10 px-6 py-2 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+                    <button id="reset-arisan-btn" class="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium h-10 px-6 py-2 bg-red-600 text-white hover:bg-red-700">
                         <i data-lucide="refresh-cw" class="h-4 w-4"></i>
                         <span>Reset Siklus Arisan</span>
                     </button>
                 </div>
             </div>
-            
         </div>
+
     </main>
 
     <div id="reset-confirm-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4 opacity-0 pointer-events-none duration-200">
