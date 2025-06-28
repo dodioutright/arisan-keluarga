@@ -115,7 +115,8 @@ function initDashboardPage() {
     const animasiDiv = document.getElementById('animasi-kocokan');
     const pemenangDiv = document.getElementById('pemenang-container');
     const namaAnimasiEl = document.getElementById('nama-animasi-display');
-    const namaPemenangEl = document.getElementById('nama-pemenang');
+    const judulPemenangEl = document.getElementById('judul-pemenang');
+    const daftarPemenangContainer = document.getElementById('daftar-pemenang-container');
     const tutupModalBtn = document.getElementById('tutup-modal-pemenang');
 
     const showModal = (target) => { if (target) { target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); } };
@@ -142,17 +143,33 @@ function initDashboardPage() {
         const year = nextMonth.getFullYear();
         const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
         const day = String(nextMonth.getDate()).padStart(2, '0');
-        return { biaya_per_peserta: 100000, tanggal_kocokan: `${year}-${month}-${day}` };
+        return { biaya_per_peserta: 100000, tanggal_kocokan: `${year}-${month}-${day}`, jumlah_pemenang: 1 };
     };
 
     const proceedWithDraw = async () => {
-        setKocokanButtonState('loading', 'Mengambil data peserta...');
+        setKocokanButtonState('loading', 'Mempersiapkan kocokan...');
         try {
+            const pengaturan = await getPengaturan();
+            const jumlahPemenang = pengaturan.jumlah_pemenang || 1;
+
             const q = query(collection(db, "peserta"), where("aktif", "==", true), where("status_bayar", "==", true), where("status_menang", "==", false));
             const eligibleSnap = await getDocs(q);
             const eligiblePeserta = [];
             eligibleSnap.forEach(doc => eligiblePeserta.push({ id: doc.id, ...doc.data() }));
-            if (eligiblePeserta.length === 0) { showToast("Tidak ada peserta yang memenuhi syarat.", false); setKocokanButtonState('enabled'); return; }
+
+            if (eligiblePeserta.length < jumlahPemenang) {
+                showToast(`Peserta yang memenuhi syarat (${eligiblePeserta.length}) kurang dari jumlah pemenang (${jumlahPemenang}).`, false);
+                setKocokanButtonState('enabled');
+                return;
+            }
+
+            const pemenangTerpilih = [];
+            let pool = [...eligiblePeserta];
+            for (let i = 0; i < jumlahPemenang; i++) {
+                const randomIndex = Math.floor(Math.random() * pool.length);
+                pemenangTerpilih.push(pool[randomIndex]);
+                pool.splice(randomIndex, 1);
+            }
 
             pemenangDiv.classList.add('hidden');
             animasiDiv.classList.remove('hidden');
@@ -164,21 +181,42 @@ function initDashboardPage() {
 
             setTimeout(async () => {
                 clearInterval(animationInterval);
-                const pemenang = eligiblePeserta[Math.floor(Math.random() * eligiblePeserta.length)];
-                await updateDoc(doc(db, 'peserta', pemenang.id), { status_menang: true, tanggal_menang: new Date() });
+
+                const batch = writeBatch(db);
+                pemenangTerpilih.forEach(pemenang => {
+                    const docRef = doc(db, 'peserta', pemenang.id);
+                    batch.update(docRef, { status_menang: true, tanggal_menang: new Date() });
+                });
+                await batch.commit();
                 localStorage.removeItem('pesertaCache');
-                namaAnimasiEl.textContent = pemenang.nama;
-                namaPemenangEl.textContent = pemenang.nama;
+
+                if (judulPemenangEl) judulPemenangEl.textContent = `Selamat kepada ${pemenangTerpilih.length} Pemenang!`;
+                if (daftarPemenangContainer) {
+                    daftarPemenangContainer.innerHTML = '';
+                    pemenangTerpilih.forEach(pemenang => {
+                        const p = document.createElement('p');
+                        p.className = "text-3xl font-extrabold text-green-700 bg-green-50 border-2 border-green-200 rounded-lg p-4";
+                        p.textContent = pemenang.nama;
+                        daftarPemenangContainer.appendChild(p);
+                    });
+                }
+                
                 setTimeout(() => {
                     animasiDiv.classList.add('hidden');
                     pemenangDiv.classList.remove('hidden');
                     lucide.createIcons();
                     if(window.confetti) confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
                 }, 500);
+
                 setKocokanButtonState('enabled');
                 loadDashboardData();
             }, 4500);
-        } catch (error) { console.error("Error saat proses kocokan:", error); showToast("Gagal melakukan proses kocokan.", false); setKocokanButtonState('enabled'); }
+
+        } catch (error) {
+            console.error("Error saat proses kocokan:", error);
+            showToast("Gagal melakukan proses kocokan.", false);
+            setKocokanButtonState('enabled');
+        }
     };
 
     const handleKocokan = async () => {
@@ -521,6 +559,7 @@ function initPengaturanPage() {
     const form = document.getElementById('pengaturan-form');
     const biayaInput = document.getElementById('biaya_per_peserta');
     const tanggalInput = document.getElementById('tanggal_kocokan');
+    const jumlahPemenangInput = document.getElementById('jumlah_pemenang');
     const simpanBtn = document.getElementById('simpan-btn');
     const pengaturanRef = doc(db, "pengaturan", "umum");
     const resetBtn = document.getElementById('reset-arisan-btn');
@@ -538,8 +577,10 @@ function initPengaturanPage() {
                 const data = docSnap.data();
                 biayaInput.value = data.biaya_per_peserta;
                 tanggalInput.value = data.tanggal_kocokan;
+                jumlahPemenangInput.value = data.jumlah_pemenang || 1;
             } else {
                 biayaInput.value = 100000;
+                jumlahPemenangInput.value = 1;
                 const now = new Date();
                 const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
                 const year = nextMonth.getFullYear();
@@ -558,6 +599,7 @@ function initPengaturanPage() {
         const dataToSave = {
             biaya_per_peserta: parseInt(biayaInput.value, 10),
             tanggal_kocokan: tanggalInput.value,
+            jumlah_pemenang: parseInt(jumlahPemenangInput.value, 10)
         };
         try {
             await setDoc(pengaturanRef, dataToSave);
