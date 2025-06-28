@@ -253,9 +253,17 @@ function initPesertaPage() {
     const hideModal = (target) => { if (target) { target.classList.add('opacity-0'); target.querySelector('.modal-content').classList.add('scale-95'); setTimeout(() => target.classList.add('pointer-events-none'), 300); } };
     
     const updateMenangToggleState = () => {
+        const helperText = document.getElementById('menang-helper-text');
         menangToggle.disabled = !bayarToggle.checked;
         if (!bayarToggle.checked) {
             menangToggle.checked = false;
+        }
+        if(helperText){
+            if (menangToggle.disabled) {
+                helperText.classList.remove('hidden');
+            } else {
+                helperText.classList.add('hidden');
+            }
         }
     };
 
