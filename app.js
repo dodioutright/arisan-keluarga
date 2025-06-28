@@ -251,8 +251,21 @@ function initPesertaPage() {
 
     const showModal = (target) => { if (target) { target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); } };
     const hideModal = (target) => { if (target) { target.classList.add('opacity-0'); target.querySelector('.modal-content').classList.add('scale-95'); setTimeout(() => target.classList.add('pointer-events-none'), 300); } };
+    
+    const updateMenangToggleState = () => {
+        menangToggle.disabled = !bayarToggle.checked;
+        if (!bayarToggle.checked) {
+            menangToggle.checked = false;
+        }
+    };
 
-    document.getElementById('add-peserta-btn')?.addEventListener('click', () => { form.reset(); idInput.value = ''; document.getElementById('modal-title').textContent = 'Tambah Peserta Baru'; showModal(modal); });
+    document.getElementById('add-peserta-btn')?.addEventListener('click', () => { 
+        form.reset(); 
+        idInput.value = ''; 
+        document.getElementById('modal-title').textContent = 'Tambah Peserta Baru'; 
+        updateMenangToggleState();
+        showModal(modal); 
+    });
     document.getElementById('cancel-btn')?.addEventListener('click', () => hideModal(modal));
     document.getElementById('cancel-delete-btn')?.addEventListener('click', () => hideModal(deleteModal));
 
@@ -260,10 +273,15 @@ function initPesertaPage() {
 
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const nama = nameInput.value.trim();
+        if (nama === '') {
+            showToast('Nama peserta tidak boleh kosong.', false);
+            return;
+        }
         const id = idInput.value;
         hideModal(modal);
         try {
-            const dataToSave = { nama: nameInput.value, status_bayar: bayarToggle.checked, status_menang: menangToggle.checked };
+            const dataToSave = { nama: nama, status_bayar: bayarToggle.checked, status_menang: menangToggle.checked };
             if (id) { await updateDoc(doc(db, 'peserta', id), dataToSave); } 
             else { dataToSave.aktif = true; await addDoc(collection(db, 'peserta'), dataToSave); }
             showToast(id ? 'Data berhasil diperbarui!' : 'Peserta baru ditambahkan!');
@@ -281,7 +299,6 @@ function initPesertaPage() {
     exportPdfBtn?.addEventListener('click', () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-
         const tableHead = [['No', 'Nama Peserta', 'Status Bayar', 'Status Menang']];
         const tableBody = filteredPesertaState.map((peserta, index) => [
             index + 1,
@@ -289,32 +306,22 @@ function initPesertaPage() {
             peserta.status_bayar ? 'Lunas' : 'Belum Bayar',
             peserta.status_menang ? 'Ya' : 'Belum'
         ]);
-
         const pageHeight = doc.internal.pageSize.height;
         const pageWidth = doc.internal.pageSize.width;
-
         doc.setFontSize(18);
         doc.text('Laporan Arisan Keluarga', pageWidth / 2, 22, { align: 'center' });
         doc.setLineWidth(0.5);
         doc.line(14, 25, pageWidth - 14, 25);
-
         doc.autoTable({
             head: tableHead,
             body: tableBody,
             startY: 35,
             theme: 'grid',
             headStyles: { fillColor: [41, 51, 61] },
-            columnStyles: {
-                0: { halign: 'center' } // Kolom ke-0 ('No') dibuat rata tengah
-            },
+            columnStyles: { 0: { halign: 'center' } },
             didParseCell: function(data) {
-                // Cek jika sel ini berada di bagian 'head' (header)
-                if (data.section === 'head') {
-                    // Cek jika sel ini berada di kolom pertama (indeks 0)
-                    if (data.column.index === 0) {
-                        // Terapkan gaya rata tengah secara eksplisit
-                        data.cell.styles.halign = 'center';
-                    }
+                if (data.section === 'head' && data.column.index === 0) {
+                    data.cell.styles.halign = 'center';
                 }
             },
             didDrawPage: function(data) {
@@ -322,13 +329,12 @@ function initPesertaPage() {
                 doc.setTextColor(150);
                 const footerText1 = '© 2025 Arisan Keluarga. All Rights Reserved.';
                 doc.text(footerText1, pageWidth / 2, pageHeight - 15, { align: 'center' });
-                
+                const footerText2 = 'Made with ❤️ by Dodi Outright.';
+                doc.text(footerText2, pageWidth / 2, pageHeight - 10, { align: 'center' });
             }
         });
-        
         const pdfOutput = doc.output('blob');
         const pdfFile = new File([pdfOutput], 'Laporan Arisan Keluarga.pdf', { type: 'application/pdf' });
-
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
             navigator.share({
                 title: 'Laporan Arisan Keluarga',
@@ -348,7 +354,6 @@ function initPesertaPage() {
     const applyFiltersAndRender = () => {
         const searchTerm = searchInput.value.toLowerCase();
         const filterValue = filterSelect.value;
-        
         filteredPesertaState = localPesertaState.filter(peserta => {
             const matchesSearch = peserta.nama.toLowerCase().includes(searchTerm);
             let matchesFilter = true;
@@ -360,7 +365,6 @@ function initPesertaPage() {
             }
             return matchesSearch && matchesFilter;
         });
-        
         totalText.textContent = `Menampilkan ${filteredPesertaState.length} dari ${localPesertaState.length} peserta.`;
         currentPage = 1;
         renderPesertaTable();
@@ -392,7 +396,6 @@ function initPesertaPage() {
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
         const paginatedItems = filteredPesertaState.slice(startIndex, endIndex);
-
         if (paginatedItems.length === 0) {
             listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Tidak ada peserta yang cocok dengan kriteria.</td></tr>`;
         } else {
@@ -408,7 +411,9 @@ function initPesertaPage() {
                 `;
                 tr.querySelector('.edit-btn').addEventListener('click', () => {
                     idInput.value = peserta.id; nameInput.value = peserta.nama; bayarToggle.checked = peserta.status_bayar; menangToggle.checked = peserta.status_menang;
-                    document.getElementById('modal-title').textContent = 'Ubah Data Peserta'; showModal(modal);
+                    document.getElementById('modal-title').textContent = 'Ubah Data Peserta';
+                    updateMenangToggleState();
+                    showModal(modal);
                 });
                 tr.querySelector('.delete-btn').addEventListener('click', () => {
                     docIdToDelete = peserta.id; const namePlaceholder = document.getElementById('peserta-to-delete-name');
@@ -419,6 +424,7 @@ function initPesertaPage() {
         lucide.createIcons();
     };
     
+    bayarToggle?.addEventListener('change', updateMenangToggleState);
     searchInput?.addEventListener('input', applyFiltersAndRender);
     filterSelect?.addEventListener('change', applyFiltersAndRender);
     resetBtn?.addEventListener('click', () => { searchInput.value = ''; filterSelect.value = 'all'; applyFiltersAndRender(); });
