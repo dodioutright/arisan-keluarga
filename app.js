@@ -669,4 +669,4 @@ function initPengaturanPage() {
     });
 
     loadPengaturan();
-}
+} 
