@@ -281,6 +281,7 @@ function initDashboardPage() {
 }
 
 function initPesertaPage() {
+    const mainElement = document.querySelector('main');
     const listBody = document.getElementById('peserta-list-manajemen');
     const skeletonBody = document.getElementById('peserta-list-skeleton');
     const totalText = document.getElementById('total-peserta-text');
@@ -511,6 +512,7 @@ function initPesertaPage() {
     resetBtn?.addEventListener('click', () => { searchInput.value = ''; filterSelect.value = 'all'; applyFiltersAndRender(); });
 
     const loadPeserta = async () => {
+        mainElement?.classList.add('is-loading');
         skeletonBody.classList.remove('hidden');
         listBody.classList.add('hidden');
         paginationControls.innerHTML = '';
@@ -525,43 +527,38 @@ function initPesertaPage() {
             skeletonBody.classList.add('hidden');
             listBody.classList.remove('hidden');
             listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Gagal memuat data.</td></tr>`;
+        } finally {
+            mainElement?.classList.remove('is-loading');
         }
     };
     loadPeserta();
 }
 
 function initRiwayatPage() {
+    const mainElement = document.querySelector('main');
     const listBody = document.getElementById('riwayat-list-body');
     const totalPemenangText = document.getElementById('total-pemenang-text');
 
     const loadRiwayatData = async () => {
+        mainElement?.classList.add('is-loading');
         if (!listBody) return;
         listBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">Memuat riwayat...</td></tr>`;
-
         try {
             const q = query(collection(db, "peserta"), where("status_menang", "==", true), orderBy("tanggal_menang", "desc"));
             const querySnapshot = await getDocs(q);
-            
             listBody.innerHTML = '';
-            
             if (querySnapshot.empty) {
                 listBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">Belum ada pemenang.</td></tr>`;
                 if(totalPemenangText) totalPemenangText.textContent = 'Total 0 pemenang.';
                 return;
             }
-
             if(totalPemenangText) totalPemenangText.textContent = `Total ${querySnapshot.size} pemenang tercatat.`;
-            
             let counter = 1;
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 const tr = listBody.insertRow();
                 tr.className = 'hover:bg-slate-50';
-
-                const tanggalMenang = data.tanggal_menang ? data.tanggal_menang.toDate().toLocaleDateString('id-ID', {
-                    day: 'numeric', month: 'long', year: 'numeric'
-                }) : 'Tidak tercatat';
-
+                const tanggalMenang = data.tanggal_menang ? data.tanggal_menang.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Tidak tercatat';
                 tr.innerHTML = `
                     <td class="p-4 text-slate-500 text-center">${counter}</td>
                     <td class="p-4 font-medium text-slate-800">${data.nama}</td>
@@ -569,32 +566,39 @@ function initRiwayatPage() {
                 `;
                 counter++;
             });
-
         } catch (error) {
             console.error("Error memuat riwayat:", error);
             listBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500">Gagal memuat riwayat.</td></tr>`;
+        } finally {
+            mainElement?.classList.remove('is-loading');
         }
     };
-
     loadRiwayatData();
 }
 
 function initPengaturanPage() {
+    const mainElement = document.querySelector('main');
     const form = document.getElementById('pengaturan-form');
     const biayaInput = document.getElementById('biaya_per_peserta');
     const tanggalInput = document.getElementById('tanggal_kocokan');
     const jumlahPemenangInput = document.getElementById('jumlah_pemenang');
-    const simpanBtn = document.getElementById('simpan-btn');
     const pengaturanRef = doc(db, "pengaturan", "umum");
     const resetBtn = document.getElementById('reset-arisan-btn');
     const resetModal = document.getElementById('reset-confirm-modal');
     const cancelResetBtn = document.getElementById('cancel-reset-btn');
     const confirmResetBtn = document.getElementById('confirm-reset-btn');
     
+    const formElements = form ? Array.from(form.querySelectorAll('input, button')) : [];
+    const toggleFormState = (disabled) => {
+        formElements.forEach(el => el.disabled = disabled);
+    };
+
     const showModal = (target) => { if (target) { target.classList.remove('opacity-0', 'pointer-events-none'); target.querySelector('.modal-content').classList.remove('scale-95'); } };
     const hideModal = (target) => { if (target) { target.classList.add('opacity-0'); target.querySelector('.modal-content').classList.add('scale-95'); setTimeout(() => target.classList.add('pointer-events-none'), 300); } };
 
     const loadPengaturan = async () => {
+        mainElement?.classList.add('is-loading');
+        toggleFormState(true);
         try {
             const docSnap = await getDoc(pengaturanRef);
             if (docSnap.exists()) {
@@ -612,11 +616,17 @@ function initPengaturanPage() {
                 const day = String(nextMonth.getDate()).padStart(2, '0');
                 tanggalInput.value = `${year}-${month}-${day}`;
             }
-        } catch (error) { showToast("Gagal memuat pengaturan.", false); }
+        } catch (error) { 
+            showToast("Gagal memuat pengaturan.", false); 
+        } finally {
+            toggleFormState(false);
+            mainElement?.classList.remove('is-loading');
+        }
     };
 
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const simpanBtn = form.querySelector('button[type="submit"]');
         simpanBtn.disabled = true;
         simpanBtn.innerHTML = '<i data-lucide="loader-circle" class="h-4 w-4 animate-spin"></i><span>Menyimpan...</span>';
         lucide.createIcons();
@@ -627,9 +637,11 @@ function initPengaturanPage() {
         };
         try {
             await setDoc(pengaturanRef, dataToSave);
+            localStorage.removeItem('dashboardCache');
             showToast("Pengaturan berhasil disimpan!");
-        } catch (error) { showToast("Gagal menyimpan pengaturan.", false); } 
-        finally {
+        } catch (error) { 
+            showToast("Gagal menyimpan pengaturan.", false); 
+        } finally {
             simpanBtn.disabled = false;
             simpanBtn.innerHTML = '<i data-lucide="save" class="h-4 w-4"></i><span>Simpan Pengaturan</span>';
             lucide.createIcons();
@@ -669,4 +681,4 @@ function initPengaturanPage() {
     });
 
     loadPengaturan();
-} 
+}
