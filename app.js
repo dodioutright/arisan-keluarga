@@ -307,6 +307,16 @@ function initPesertaPage() {
             columnStyles: {
                 0: { halign: 'center' } // Kolom ke-0 ('No') dibuat rata tengah
             },
+            didParseCell: function(data) {
+                // Cek jika sel ini berada di bagian 'head' (header)
+                if (data.section === 'head') {
+                    // Cek jika sel ini berada di kolom pertama (indeks 0)
+                    if (data.column.index === 0) {
+                        // Terapkan gaya rata tengah secara eksplisit
+                        data.cell.styles.halign = 'center';
+                    }
+                }
+            },
             didDrawPage: function(data) {
                 doc.setFontSize(10);
                 doc.setTextColor(150);
